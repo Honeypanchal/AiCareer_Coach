@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1071381658741",
+    "project_id": "aicareercoach-91169",
+    "storage_bucket": "aicareercoach-91169.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071381658741:android:47faea072195aa43598c3c",
+        "android_client_info": {
+          "package_name": "com.ex.ai_career_coach"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR3mX45EaXr9oU3VL8Tl6A5ZQZIT4RikQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071381658741:android:3c9b926bc75b83c5598c3c",
+        "android_client_info": {
+          "package_name": "com.ex.aicareercoach"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR3mX45EaXr9oU3VL8Tl6A5ZQZIT4RikQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
