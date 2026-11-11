@@ -114,7 +114,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onChanged: (value) {
                       setState(() {
                         final trimmed = value.trim();
-                        _role = trimmed.isEmpty ? _role : trimmed;
+                        _role = trimmed.isEmpty ? null : trimmed;
                       });
                     },
                   ),

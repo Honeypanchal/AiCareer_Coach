@@ -273,7 +273,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   onChanged: (value) {
                     setState(() {
                       final trimmed = value.trim();
-                      if (trimmed.isNotEmpty) _role = trimmed;
+                      _role = trimmed.isEmpty ? null : trimmed;
                     });
                   },
                 ),

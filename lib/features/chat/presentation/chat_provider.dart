@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../profile/data/profile_repository.dart';
 import '../data/chat_message.model.dart';
 import '../data/chat_repository.dart';
+
+const _welcomeText =
+    "Hi! I'm your AI Career Coach 👋\n\nAsk me anything about interviews, resumes, coding doubts, or career guidance!";
 
 // ─── Chat State ────────────────────────────────────────────────────────────────
 // Holds everything the UI needs to know about the current chat.
@@ -17,6 +22,8 @@ class ChatState {
     this.isLoadingHistory = false,
     this.error,
   });
+
+  bool get canSend => !isLoading && !isLoadingHistory;
 
   // copyWith lets us update one field while keeping the rest unchanged
   ChatState copyWith({
@@ -41,8 +48,14 @@ class ChatState {
 class ChatNotifier extends StateNotifier<ChatState> {
   final ChatRepository _repository;
   final String? _uid;
+  final String Function() _careerContext;
 
-  ChatNotifier(this._repository, this._uid) : super(ChatState()) {
+  ChatNotifier(
+    this._repository,
+    this._uid, {
+    String Function()? careerContext,
+  })  : _careerContext = careerContext ?? (() => ''),
+        super(ChatState()) {
     // Load previous chat history when the notifier is created
     _loadHistory();
   }
@@ -55,53 +68,50 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
     try {
       final history = await _repository.loadChatHistory(_uid);
+      if (!mounted) return;
 
       // If no history, show a welcome message
-      if (history.isEmpty) {
-        state = state.copyWith(
-          messages: [
-            ChatMessage(
-              text:
-              "Hi! I'm your AI Career Coach 👋\n\nAsk me anything about interviews, resumes, coding doubts, or career guidance!",
-              isUser: false,
-            ),
-          ],
-          isLoadingHistory: false,
-        );
-      } else {
-        state = state.copyWith(messages: history, isLoadingHistory: false);
-      }
+      state = state.copyWith(
+        messages:
+            history.isEmpty ? [ChatMessage(text: _welcomeText, isUser: false)] : history,
+        isLoadingHistory: false,
+      );
     } catch (e) {
-      state = state.copyWith(isLoadingHistory: false);
+      if (!mounted) return;
+      state = state.copyWith(
+        messages: [ChatMessage(text: _welcomeText, isUser: false)],
+        isLoadingHistory: false,
+      );
     }
   }
 
   // ── Send a message ───────────────────────────────────────────────────────────
   // This is the main method called when the user hits send.
   Future<void> sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
+    if (text.trim().isEmpty || !state.canSend) return;
 
     // Step 1: Add user message to UI immediately (optimistic update)
     final userMessage = ChatMessage(text: text.trim(), isUser: true);
-    final updatedMessages = [...state.messages, userMessage];
 
     state = state.copyWith(
-      messages: updatedMessages,
+      messages: [...state.messages, userMessage],
       isLoading: true,
       error: null,
     );
 
-    // Save user message to Firestore (fire and forget — don't block UI)
-    if (_uid != null) {
-      _repository.saveMessage(_uid, userMessage);
-    }
+    _save(userMessage);
+    await _requestReply();
+  }
 
+  // ── Ask Gemini to reply to the conversation so far ─────────────────────────
+  Future<void> _requestReply() async {
     try {
       // Step 2: Send the FULL conversation to Gemini for context
-      // We exclude the initial welcome message if it's the only message
-      final history = updatedMessages.where((m) => !m.isError).toList();
-
-      final aiResponseText = await _repository.sendMessage(history);
+      final aiResponseText = await _repository.sendMessage(
+        state.messages,
+        careerContext: _careerContext(),
+      );
+      if (!mounted) return;
 
       // Step 3: Add AI response to the chat
       final aiMessage = ChatMessage(text: aiResponseText, isUser: false);
@@ -111,11 +121,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
         isLoading: false,
       );
 
-      // Save AI response to Firestore
-      if (_uid != null) {
-        _repository.saveMessage(_uid, aiMessage);
-      }
+      _save(aiMessage);
     } catch (e) {
+      if (!mounted) return;
+
       // Step 4: On error, show an error bubble in the chat
       final errorMessage = ChatMessage(
         text: e.toString().replaceAll('Exception: ', ''),
@@ -131,48 +140,65 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  // ── Save to Firestore (fire and forget — don't block UI) ───────────────────
+  // A failed save must not break the chat, the message is still on screen.
+  void _save(ChatMessage message) {
+    if (_uid == null) return;
+    _repository.saveMessage(_uid, message).catchError((Object e) {
+      debugPrint('Could not save chat message: $e');
+    });
+  }
+
   // ── Retry last message (useful after an error) ─────────────────────────────
+  // The user's message is already in the list and in Firestore, so this only
+  // removes the error bubble and asks for the reply again.
   Future<void> retryLastMessage() async {
-    // Find the last user message and resend it
-    final lastUserMessage = state.messages.lastWhere(
-          (m) => m.isUser,
-      orElse: () => ChatMessage(text: '', isUser: true),
-    );
+    if (!state.canSend) return;
 
-    if (lastUserMessage.text.isEmpty) return;
-
-    // Remove the error message before retrying
     final messagesWithoutError =
-    state.messages.where((m) => !m.isError).toList();
+        state.messages.where((m) => !m.isError).toList();
+    if (messagesWithoutError.isEmpty || !messagesWithoutError.last.isUser) {
+      return;
+    }
 
-    state = state.copyWith(messages: messagesWithoutError);
-    await sendMessage(lastUserMessage.text);
+    state = state.copyWith(messages: messagesWithoutError, isLoading: true);
+    await _requestReply();
   }
 
   // ── Clear chat ───────────────────────────────────────────────────────────────
-  Future<void> clearChat() async {
-    if (_uid != null) {
-      await _repository.clearChatHistory(_uid);
+  // Returns false if the history could not be deleted.
+  Future<bool> clearChat() async {
+    try {
+      if (_uid != null) {
+        await _repository.clearChatHistory(_uid);
+      }
+    } catch (e) {
+      return false;
     }
+    if (!mounted) return true;
+
     state = ChatState(
-      messages: [
-        ChatMessage(
-          text:
-          "Hi! I'm your AI Career Coach 👋\n\nAsk me anything about interviews, resumes, coding doubts, or career guidance!",
-          isUser: false,
-        ),
-      ],
+      messages: [ChatMessage(text: _welcomeText, isUser: false)],
     );
+    return true;
   }
 }
 
+// Text another screen wants placed in the chat input (e.g. Resume Check's
+// "Ask AI Coach"). The chat screen takes it and sets it back to null.
+final chatDraftProvider = StateProvider<String?>((ref) => null);
+
 // ─── Chat Provider ─────────────────────────────────────────────────────────────
 // StateNotifierProvider exposes the ChatNotifier to the UI.
-// autoDispose means the chat state resets if the user navigates away
-// and comes back — but since we load from Firestore, history persists.
+// The profile is read at send time so editing it doesn't reset the chat.
 final chatProvider =
 StateNotifierProvider<ChatNotifier, ChatState>((ref) {
   final repository = ref.watch(chatRepositoryProvider);
   final uid = ref.watch(currentUserUidProvider);
-  return ChatNotifier(repository, uid);
+  return ChatNotifier(
+    repository,
+    uid,
+    careerContext: () =>
+        ref.read(currentUserProfileProvider).valueOrNull?.careerContext ?? '',
+  );
 });

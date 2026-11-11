@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/firebase/app_firestore.dart';
 import '../../auth/data/auth_repository.dart';
 import 'user_profile.dart';
 
@@ -30,7 +31,7 @@ final currentUserProfileProvider = Provider<AsyncValue<UserProfile?>>((ref) {
 
 class ProfileRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore => appFirestore;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   DocumentReference<Map<String, dynamic>> _userDoc(String uid) {
@@ -38,7 +39,13 @@ class ProfileRepository {
   }
 
   Stream<UserProfile?> watchProfile(String uid) {
-    return _userDoc(uid).snapshots().map((snap) {
+    // An empty phone cache (new install, other device) answers "no document"
+    // before the server replies. Skip that answer so a returning user isn't
+    // sent to onboarding; wait for the server instead.
+    return _userDoc(uid)
+        .snapshots()
+        .where((snap) => snap.exists || !snap.metadata.isFromCache)
+        .map((snap) {
       if (!snap.exists) return null;
       return UserProfile.fromMap(uid, snap.data());
     });
@@ -142,12 +149,14 @@ class ProfileRepository {
 
   Future<void> _deleteSubcollection(String uid, String name) async {
     final col = _userDoc(uid).collection(name);
-    final snap = await col.limit(300).get();
-    if (snap.docs.isEmpty) return;
-    final batch = _firestore.batch();
-    for (final doc in snap.docs) {
-      batch.delete(doc.reference);
+    while (true) {
+      final snap = await col.limit(300).get();
+      if (snap.docs.isEmpty) return;
+      final batch = _firestore.batch();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
     }
-    await batch.commit();
   }
 }

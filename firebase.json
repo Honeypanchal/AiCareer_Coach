@@ -1,1 +1,31 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"aicareercoach-91169","appId":"1:1071381658741:android:47faea072195aa43598c3c","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"aicareercoach-91169","configurations":{"android":"1:1071381658741:android:47faea072195aa43598c3c","ios":"1:1071381658741:ios:36c9b5943bc67ff9598c3c","macos":"1:1071381658741:ios:36c9b5943bc67ff9598c3c","web":"1:1071381658741:web:ec779c0e06476930598c3c","windows":"1:1071381658741:web:a0f41ba87537e097598c3c"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "aicareercoach-91169",
+          "appId": "1:1071381658741:android:47faea072195aa43598c3c",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "aicareercoach-91169",
+          "configurations": {
+            "android": "1:1071381658741:android:47faea072195aa43598c3c",
+            "ios": "1:1071381658741:ios:36c9b5943bc67ff9598c3c",
+            "macos": "1:1071381658741:ios:36c9b5943bc67ff9598c3c",
+            "web": "1:1071381658741:web:ec779c0e06476930598c3c",
+            "windows": "1:1071381658741:web:a0f41ba87537e097598c3c"
+          }
+        }
+      }
+    }
+  },
+  "firestore": [
+    {
+      "database": "default",
+      "rules": "firestore.rules"
+    }
+  ]
+}

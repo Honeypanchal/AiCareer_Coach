@@ -28,7 +28,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   // ── Send message and scroll to bottom ────────────────────────────────────────
   void _sendMessage() {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || !ref.read(chatProvider).canSend) return;
 
     ref.read(chatProvider.notifier).sendMessage(text);
     _controller.clear();
@@ -61,9 +61,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              ref.read(chatProvider.notifier).clearChat();
+            onPressed: () async {
               Navigator.pop(context);
+              final cleared = await ref.read(chatProvider.notifier).clearChat();
+              if (!cleared && mounted) {
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Could not clear chat. Please try again.')),
+                );
+              }
             },
             child: const Text('Clear',
                 style: TextStyle(color: AppColors.error)),
@@ -77,6 +83,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final chatState = ref.watch(chatProvider);
+
+    // Put text from another screen into the input so the user can edit it.
+    ref.listen(chatDraftProvider, (previous, next) {
+      if (next == null) return;
+      _controller.text = next;
+      ref.read(chatDraftProvider.notifier).state = null;
+    });
 
     // Auto-scroll whenever a new message arrives
     ref.listen(chatProvider, (previous, next) {
@@ -121,7 +134,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded, size: 22),
-            onPressed: _showClearDialog,
+            onPressed: chatState.isLoading ? null : _showClearDialog,
             tooltip: 'Clear chat',
           ),
         ],

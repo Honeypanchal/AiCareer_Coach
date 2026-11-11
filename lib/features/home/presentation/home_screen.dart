@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/profile_avatar.dart';
 import '../../../features/auth/data/auth_repository.dart';
@@ -137,7 +139,8 @@ class HomeScreen extends ConsumerWidget {
                       onTap: () => ref.read(bottomNavIndexProvider.notifier).state = 2),
                   _QuickCard(icon: Icons.description_outlined,
                       label: 'Resume Check', subtitle: 'Analyze CV',
-                      color: const Color(0xFFFF9F43), onTap: () {}),
+                      color: const Color(0xFFFF9F43),
+                      onTap: () => context.push(AppRoutes.resumeCheck)),
                   _QuickCard(icon: Icons.person_outline_rounded,
                       label: 'Profile', subtitle: 'View & edit',
                       color: const Color(0xFFFF5C7D),

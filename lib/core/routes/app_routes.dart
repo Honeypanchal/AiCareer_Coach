@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/forgot_screen.dart';
@@ -8,13 +9,21 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/home/presentation/main_scaffold.dart';
+import '../../features/interview/data/interview_models.dart';
+import '../../features/interview/presentation/interview_history_screen.dart';
+import '../../features/interview/presentation/interview_report_screen.dart';
+import '../../features/interview/presentation/interview_session_screen.dart';
 import '../../features/profile/data/profile_repository.dart';
 import '../../features/profile/presentation/about_screen.dart';
 import '../../features/profile/presentation/appearance_screen.dart';
 import '../../features/profile/presentation/change_password_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
-import '../../features/profile/presentation/history_placeholder_screen.dart';
 import '../../features/profile/presentation/onboarding_screen.dart';
+import '../../features/resume/data/resume_models.dart';
+import '../../features/resume/presentation/improved_resume_screen.dart';
+import '../../features/resume/presentation/resume_check_screen.dart';
+import '../../features/resume/presentation/resume_history_screen.dart';
+import '../theme/theme_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -28,7 +37,12 @@ class AppRoutes {
   static const about = '/about';
   static const changePassword = '/change-password';
   static const interviewHistory = '/interview-history';
+  static const interviewSession = '/interview/session';
+  static const interviewReport = '/interview/report';
   static const resumeHistory = '/resume-history';
+  static const resumeCheck = '/resume-check';
+  static const improvedResume = '/resume-check/improved';
+  static const resumeReport = '/resume-report';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -144,25 +158,70 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.interviewHistory,
         pageBuilder: (context, state) => _slideTransition(
           state: state,
-          child: const HistoryPlaceholderScreen(
-            title: 'Interview history',
-            subtitle:
-                'Completed mock interviews will show up here in the interview step.',
-            icon: Icons.mic_none_rounded,
-          ),
+          child: const InterviewHistoryScreen(),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.interviewSession,
+        pageBuilder: (context, state) {
+          final config = state.extra;
+          return _slideTransition(
+            state: state,
+            child: config is InterviewConfig
+                ? InterviewSessionScreen(config: config)
+                : const _MissingPage(),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.interviewReport,
+        pageBuilder: (context, state) {
+          final session = state.extra;
+          return _slideTransition(
+            state: state,
+            child: InterviewReportScreen(
+              session: session is InterviewSession ? session : null,
+            ),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.resumeHistory,
         pageBuilder: (context, state) => _slideTransition(
           state: state,
-          child: const HistoryPlaceholderScreen(
-            title: 'Resume history',
-            subtitle:
-                'Scored resumes will show up here once Resume Check is built.',
-            icon: Icons.description_outlined,
-          ),
+          child: const ResumeHistoryScreen(),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.resumeCheck,
+        pageBuilder: (context, state) => _slideTransition(
+          state: state,
+          child: const ResumeCheckScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.improvedResume,
+        pageBuilder: (context, state) {
+          final resume = state.extra;
+          return _slideTransition(
+            state: state,
+            child: ImprovedResumeScreen(
+              resume: resume is ImprovedResume ? resume : null,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.resumeReport,
+        pageBuilder: (context, state) {
+          final analysis = state.extra;
+          return _slideTransition(
+            state: state,
+            child: ResumeReportScreen(
+              analysis: analysis is ResumeAnalysis ? analysis : null,
+            ),
+          );
+        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -171,6 +230,20 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
+// Shown if a page that needs data from the previous screen is opened without
+// it (for example after the app was restored by Android).
+class _MissingPage extends StatelessWidget {
+  const _MissingPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: const Center(child: Text('Please start again from the Interview tab.')),
+    );
+  }
+}
+
 class _AuthNotifier extends ChangeNotifier {
   bool _isLoggedIn = false;
   bool _isAuthLoading = true;
@@ -178,14 +251,25 @@ class _AuthNotifier extends ChangeNotifier {
   bool _onboardingCompleted = false;
   bool _splashMinTimePassed = false;
   bool _wasLoggedIn = false;
+  String? _uid;
+  final SharedPreferences _prefs;
 
   bool get isLoggedIn => _isLoggedIn;
   bool get isAuthLoading => _isAuthLoading;
-  bool get isProfileLoading => _isProfileLoading;
-  bool get onboardingCompleted => _onboardingCompleted;
+  // A user who finished onboarding on this phone goes straight to Home,
+  // without waiting for the profile to load.
+  bool get isProfileLoading => _isProfileLoading && !_rememberedOnboarding;
+  bool get onboardingCompleted => _onboardingCompleted || _rememberedOnboarding;
   bool get splashMinTimePassed => _splashMinTimePassed;
 
-  _AuthNotifier(Ref ref) {
+  static String _onboardedKey(String uid) => 'onboarded_$uid';
+
+  bool get _rememberedOnboarding {
+    final uid = _uid;
+    return uid != null && (_prefs.getBool(_onboardedKey(uid)) ?? false);
+  }
+
+  _AuthNotifier(Ref ref) : _prefs = ref.read(sharedPreferencesProvider) {
     Future.delayed(const Duration(milliseconds: 2200), () {
       _splashMinTimePassed = true;
       notifyListeners();
@@ -194,6 +278,7 @@ class _AuthNotifier extends ChangeNotifier {
     ref.listen(authStateProvider, (previous, next) {
       _isAuthLoading = next.isLoading && !next.hasValue;
       _isLoggedIn = next.valueOrNull != null;
+      _uid = next.valueOrNull?.uid;
 
       if (_isLoggedIn && !_wasLoggedIn) {
         Future.microtask(() {
@@ -212,7 +297,11 @@ class _AuthNotifier extends ChangeNotifier {
         _onboardingCompleted = true;
       } else {
         _isProfileLoading = next.isLoading && !next.hasValue;
-        _onboardingCompleted = next.valueOrNull?.onboardingCompleted ?? false;
+        final profile = next.valueOrNull;
+        _onboardingCompleted = profile?.onboardingCompleted ?? false;
+        if (profile != null && profile.onboardingCompleted) {
+          _prefs.setBool(_onboardedKey(profile.uid), true);
+        }
       }
       notifyListeners();
     }, fireImmediately: true);
