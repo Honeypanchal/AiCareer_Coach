@@ -78,8 +78,10 @@ const _config = InterviewConfig(
   questionCount: 2,
 );
 
-Future<InterviewSessionNotifier> _start(_FakeInterviewRepository repo,
-    {InterviewConfig config = _config}) async {
+Future<InterviewSessionNotifier> _start(
+  _FakeInterviewRepository repo, {
+  InterviewConfig config = _config,
+}) async {
   final notifier = InterviewSessionNotifier(repo, config, 'user-1');
   await Future<void>.delayed(Duration.zero);
   return notifier;
@@ -135,12 +137,14 @@ void main() {
     test('ending early reports only the answered questions', () async {
       final repo = _FakeInterviewRepository()
         ..evaluations.add(_eval(6, next: 'Q2?'));
-      final notifier = await _start(repo,
-          config: const InterviewConfig(
-            topic: 'SQL',
-            difficulty: InterviewDifficulty.medium,
-            questionCount: 5,
-          ));
+      final notifier = await _start(
+        repo,
+        config: const InterviewConfig(
+          topic: 'SQL',
+          difficulty: InterviewDifficulty.medium,
+          questionCount: 5,
+        ),
+      );
 
       await notifier.submitAnswer('Answer');
       await notifier.finish();
@@ -199,14 +203,18 @@ void main() {
 
   group('parseEvaluation', () {
     test('clamps the score and limits the lists', () {
-      final result = parseEvaluation({
-        'score': 14,
-        'good': ['a', 'b', 'c', 'd'],
-        'missing': ['x', ' '],
-        'modelAnswer': ' Ideal ',
-        'nextQuestion': 'Next?',
-        'nextIsFollowUp': true,
-      }, skipped: false, wantNextQuestion: true);
+      final result = parseEvaluation(
+        {
+          'score': 14,
+          'good': ['a', 'b', 'c', 'd'],
+          'missing': ['x', ' '],
+          'modelAnswer': ' Ideal ',
+          'nextQuestion': 'Next?',
+          'nextIsFollowUp': true,
+        },
+        skipped: false,
+        wantNextQuestion: true,
+      );
 
       expect(result.score, 10);
       expect(result.good, ['a', 'b', 'c']);
@@ -217,8 +225,14 @@ void main() {
 
     test('a skipped question always scores zero', () {
       final result = parseEvaluation(
-          {'score': 6, 'good': ['a'], 'nextQuestion': ''},
-          skipped: true, wantNextQuestion: false);
+        {
+          'score': 6,
+          'good': ['a'],
+          'nextQuestion': '',
+        },
+        skipped: true,
+        wantNextQuestion: false,
+      );
       expect(result.score, 0);
       expect(result.good, isEmpty);
       expect(result.nextQuestion, isNull);
@@ -226,10 +240,18 @@ void main() {
 
     test('a missing next question is an error that can be retried', () {
       expect(
-        () => parseEvaluation({'score': 5, 'nextQuestion': ''},
-            skipped: false, wantNextQuestion: true),
-        throwsA(isA<GeminiException>()
-            .having((e) => e.retryable, 'retryable', isTrue)),
+        () => parseEvaluation(
+          {'score': 5, 'nextQuestion': ''},
+          skipped: false,
+          wantNextQuestion: true,
+        ),
+        throwsA(
+          isA<GeminiException>().having(
+            (e) => e.retryable,
+            'retryable',
+            isTrue,
+          ),
+        ),
       );
     });
   });
@@ -247,19 +269,26 @@ void main() {
           );
 
       expect(prompt(isFollowUp: false), contains('follow-up question'));
-      expect(prompt(isFollowUp: true), isNot(contains('nextIsFollowUp must be true')));
-      expect(prompt(isFollowUp: false, skipped: true),
-          isNot(contains('nextIsFollowUp must be true')));
+      expect(
+        prompt(isFollowUp: true),
+        isNot(contains('nextIsFollowUp must be true')),
+      );
+      expect(
+        prompt(isFollowUp: false, skipped: true),
+        isNot(contains('nextIsFollowUp must be true')),
+      );
     });
 
     test('the interviewer prompt includes the profile', () {
-      final prompt = buildInterviewerInstruction(const InterviewConfig(
-        topic: 'Flutter',
-        difficulty: InterviewDifficulty.hard,
-        questionCount: 5,
-        targetRole: 'Flutter Developer',
-        experienceLevel: '3–5 years',
-      ));
+      final prompt = buildInterviewerInstruction(
+        const InterviewConfig(
+          topic: 'Flutter',
+          difficulty: InterviewDifficulty.hard,
+          questionCount: 5,
+          targetRole: 'Flutter Developer',
+          experienceLevel: '3–5 years',
+        ),
+      );
       expect(prompt, contains('Target role: Flutter Developer'));
       expect(prompt, contains('Hard'));
     });
@@ -267,29 +296,35 @@ void main() {
 
   group('models', () {
     test('difficulty follows experience', () {
-      expect(InterviewDifficulty.forExperience('Student / Fresher'),
-          InterviewDifficulty.easy);
-      expect(InterviewDifficulty.forExperience('1–3 years'),
-          InterviewDifficulty.medium);
-      expect(InterviewDifficulty.forExperience('8+ years'),
-          InterviewDifficulty.hard);
+      expect(
+        InterviewDifficulty.forExperience('Student / Fresher'),
+        InterviewDifficulty.easy,
+      );
+      expect(
+        InterviewDifficulty.forExperience('1–3 years'),
+        InterviewDifficulty.medium,
+      );
+      expect(
+        InterviewDifficulty.forExperience('8+ years'),
+        InterviewDifficulty.hard,
+      );
       expect(InterviewDifficulty.forExperience(''), InterviewDifficulty.medium);
     });
 
     test('stats use average score and best topic', () {
       InterviewSession session(String topic, int score) => InterviewSession(
-            topic: topic,
-            difficulty: InterviewDifficulty.easy,
-            createdAt: DateTime(2026, 11, 7),
-            turns: const [],
-            report: InterviewReport(
-              overallScore: score,
-              summary: '',
-              strongAreas: const [],
-              weakAreas: const [],
-              practiceNext: const [],
-            ),
-          );
+        topic: topic,
+        difficulty: InterviewDifficulty.easy,
+        createdAt: DateTime(2026, 11, 7),
+        turns: const [],
+        report: InterviewReport(
+          overallScore: score,
+          summary: '',
+          strongAreas: const [],
+          weakAreas: const [],
+          practiceNext: const [],
+        ),
+      );
 
       final stats = InterviewStats.from([
         session('Flutter', 80),
@@ -317,7 +352,7 @@ void main() {
             good: ['g'],
             missing: ['m'],
             modelAnswer: 'ideal',
-          )
+          ),
         ],
         report: const InterviewReport(
           overallScore: 70,

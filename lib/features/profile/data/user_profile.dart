@@ -60,7 +60,8 @@ class UserProfile {
       location: (map['location'] as String?) ?? '',
       targetRole: (map['targetRole'] as String?) ?? '',
       experienceLevel: (map['experienceLevel'] as String?) ?? '',
-      skills: (map['skills'] as List<dynamic>?)
+      skills:
+          (map['skills'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .where((e) => e.trim().isNotEmpty)
               .toList() ??

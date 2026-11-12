@@ -12,7 +12,7 @@ const _welcomeText =
 // Holds everything the UI needs to know about the current chat.
 class ChatState {
   final List<ChatMessage> messages;
-  final bool isLoading;     // true while waiting for AI response
+  final bool isLoading; // true while waiting for AI response
   final bool isLoadingHistory; // true while loading old messages from Firestore
   final String? error;
 
@@ -50,12 +50,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
   final String? _uid;
   final String Function() _careerContext;
 
-  ChatNotifier(
-    this._repository,
-    this._uid, {
-    String Function()? careerContext,
-  })  : _careerContext = careerContext ?? (() => ''),
-        super(ChatState()) {
+  ChatNotifier(this._repository, this._uid, {String Function()? careerContext})
+    : _careerContext = careerContext ?? (() => ''),
+      super(ChatState()) {
     // Load previous chat history when the notifier is created
     _loadHistory();
   }
@@ -72,8 +69,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       // If no history, show a welcome message
       state = state.copyWith(
-        messages:
-            history.isEmpty ? [ChatMessage(text: _welcomeText, isUser: false)] : history,
+        messages: history.isEmpty
+            ? [ChatMessage(text: _welcomeText, isUser: false)]
+            : history,
         isLoadingHistory: false,
       );
     } catch (e) {
@@ -155,8 +153,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
   Future<void> retryLastMessage() async {
     if (!state.canSend) return;
 
-    final messagesWithoutError =
-        state.messages.where((m) => !m.isError).toList();
+    final messagesWithoutError = state.messages
+        .where((m) => !m.isError)
+        .toList();
     if (messagesWithoutError.isEmpty || !messagesWithoutError.last.isUser) {
       return;
     }
@@ -191,8 +190,7 @@ final chatDraftProvider = StateProvider<String?>((ref) => null);
 // ─── Chat Provider ─────────────────────────────────────────────────────────────
 // StateNotifierProvider exposes the ChatNotifier to the UI.
 // The profile is read at send time so editing it doesn't reset the chat.
-final chatProvider =
-StateNotifierProvider<ChatNotifier, ChatState>((ref) {
+final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
   final repository = ref.watch(chatRepositoryProvider);
   final uid = ref.watch(currentUserUidProvider);
   return ChatNotifier(

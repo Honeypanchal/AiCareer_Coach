@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../chat/presentation/chat_provider.dart';
 import '../../home/presentation/main_scaffold.dart';
 import '../../interview/presentation/widgets/interview_widgets.dart';
@@ -51,20 +52,44 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
       // Check the size before loading a big file into memory.
       if (await file.length() > ResumeCheckNotifier.maxBytes) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'This file is larger than 5 MB. Please upload a smaller PDF.')),
+        showErrorSnackBar(
+          context,
+          'This file is larger than 5 MB. Please upload a smaller PDF.',
         );
         return;
       }
       _notifier.setFile(file.name, await file.readAsBytes());
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open that file.')),
-      );
+      showErrorSnackBar(context, 'Could not open that file.');
     }
+  }
+
+  Future<bool> _confirmStop() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Stop checking your resume?'),
+        content: const Text(
+          'The AI is still working. If you leave now, '
+          'this result will be lost.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep waiting'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Leave',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    return result == true;
   }
 
   void _analyze() {
@@ -87,7 +112,10 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
   }
 
   void _askCoach(ResumeAnalysis analysis) {
-    final top = analysis.improvements.take(3).map((i) => '- ${i.issue}').join('\n');
+    final top = analysis.improvements
+        .take(3)
+        .map((i) => '- ${i.issue}')
+        .join('\n');
     ref.read(chatDraftProvider.notifier).state =
         'I checked my resume${analysis.targetRole.isEmpty ? '' : ' for ${analysis.targetRole}'} '
         'and scored ${analysis.overallScore}%. The main issues were:\n$top\n'
@@ -121,14 +149,18 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
         context.push(AppRoutes.improvedResume, extra: improved);
       }
       if (next.fileError != null && previous?.fileError != next.fileError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.fileError!)),
-        );
+        showErrorSnackBar(context, next.fileError!);
       }
     });
 
+    // While the AI is working, back asks first instead of doing nothing
+    // (a silent, blocked back gesture feels like the app has frozen).
     return PopScope(
       canPop: !state.busy,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _confirmStop() && context.mounted) context.pop();
+      },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Resume Check'),
@@ -158,18 +190,22 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
       case ResumeCheckPhase.idle:
         return _uploadView(state);
       case ResumeCheckPhase.analyzing:
-        return const _ProgressSteps(steps: [
-          'Reading your resume…',
-          'Checking ATS formatting…',
-          'Scoring it for your target role…',
-          'Writing suggestions…',
-        ]);
+        return const _ProgressSteps(
+          steps: [
+            'Reading your resume…',
+            'Checking ATS formatting…',
+            'Scoring it for your target role…',
+            'Writing suggestions…',
+          ],
+        );
       case ResumeCheckPhase.improving:
-        return const _ProgressSteps(steps: [
-          'Rewriting your bullet points…',
-          'Applying the suggestions…',
-          'Checking every fact against your original…',
-        ]);
+        return const _ProgressSteps(
+          steps: [
+            'Rewriting your bullet points…',
+            'Applying the suggestions…',
+            'Checking every fact against your original…',
+          ],
+        );
       case ResumeCheckPhase.error:
         return _ErrorView(
           message: state.errorMessage ?? 'Something went wrong.',
@@ -193,8 +229,10 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
             controller: _scroll,
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
             children: [
-              Text('Get your resume reviewed',
-                  style: theme.textTheme.headlineMedium),
+              Text(
+                'Get your resume reviewed',
+                style: theme.textTheme.headlineMedium,
+              ),
               const SizedBox(height: 6),
               Text(
                 'You get a score, what to fix first with examples, missing keywords, and an improved CV you can download.',
@@ -211,36 +249,56 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
                   child: file == null
                       ? const Column(
                           children: [
-                            Icon(Icons.upload_file_rounded,
-                                size: 40, color: AppColors.primary),
+                            Icon(
+                              Icons.upload_file_rounded,
+                              size: 40,
+                              color: AppColors.primary,
+                            ),
                             SizedBox(height: 10),
-                            Text('Upload your resume',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w600, fontSize: 15)),
+                            Text(
+                              'Upload your resume',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
                             SizedBox(height: 4),
-                            Text('PDF only · up to 5 MB',
-                                style: TextStyle(
-                                    color: AppColors.textGrey, fontSize: 12.5)),
+                            Text(
+                              'PDF only · up to 5 MB',
+                              style: TextStyle(
+                                color: AppColors.textGrey,
+                                fontSize: 12.5,
+                              ),
+                            ),
                           ],
                         )
                       : Row(
                           children: [
-                            const Icon(Icons.picture_as_pdf_rounded,
-                                size: 36, color: AppColors.error),
+                            const Icon(
+                              Icons.picture_as_pdf_rounded,
+                              size: 36,
+                              color: AppColors.error,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(file.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600)),
-                                  Text('${file.sizeLabel} · tap to change',
-                                      style: const TextStyle(
-                                          color: AppColors.textGrey,
-                                          fontSize: 12.5)),
+                                  Text(
+                                    file.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${file.sizeLabel} · tap to change',
+                                    style: const TextStyle(
+                                      color: AppColors.textGrey,
+                                      fontSize: 12.5,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -270,14 +328,21 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
                 child: Theme(
                   data: theme.copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
-                    leading: const Icon(Icons.description_outlined,
-                        color: AppColors.primary),
-                    title: const Text('Match a job description',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
-                    subtitle: const Text('Optional, makes keywords more precise',
-                        style:
-                            TextStyle(color: AppColors.textGrey, fontSize: 12)),
+                    leading: const Icon(
+                      Icons.description_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: const Text(
+                      'Match a job description',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Optional, makes keywords more precise',
+                      style: TextStyle(color: AppColors.textGrey, fontSize: 12),
+                    ),
                     childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     children: [
                       TextField(
@@ -297,14 +362,20 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
               const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.lock_outline_rounded,
-                      size: 16, color: AppColors.textGrey),
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    size: 16,
+                    color: AppColors.textGrey,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Your PDF is sent to Google Gemini for the review and is not stored. Only the review is saved to your history.',
                       style: TextStyle(
-                          color: AppColors.textGrey, fontSize: 12, height: 1.4),
+                        color: AppColors.textGrey,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
@@ -312,14 +383,16 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
             ],
           ),
         ),
-        _BottomBar(children: [
-          Expanded(
-            child: ElevatedButton(
-              onPressed: file == null ? null : _analyze,
-              child: const Text('Check my resume'),
+        _BottomBar(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: file == null ? null : _analyze,
+                child: const Text('Check my resume'),
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ],
     );
   }
@@ -339,16 +412,18 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
               if (state.saved == false) ...[
                 const InterviewCard(
                   borderColor: AppColors.warning,
-                  child: Row(children: [
-                    Icon(Icons.cloud_off_rounded, color: AppColors.warning),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'This review could not be saved to your history. Check your internet connection.',
-                        style: TextStyle(fontSize: 13),
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_off_rounded, color: AppColors.warning),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'This review could not be saved to your history. Check your internet connection.',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -356,27 +431,30 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
             ],
           ),
         ),
-        _BottomBar(children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 56),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+        _BottomBar(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                onPressed: () => _askCoach(analysis),
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                label: const Text('Ask AI Coach'),
               ),
-              onPressed: () => _askCoach(analysis),
-              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-              label: const Text('Ask AI Coach'),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _openImproved,
-              child: Text(hasImproved ? 'View improved CV' : 'Improve my CV'),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _openImproved,
+                child: Text(hasImproved ? 'View improved CV' : 'Improve my CV'),
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ],
     );
   }
@@ -426,14 +504,18 @@ class _ProgressStepsState extends State<_ProgressSteps> {
             const SizedBox(height: 18),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
-              child: Text(widget.steps[_step],
-                  key: ValueKey(_step),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge),
+              child: Text(
+                widget.steps[_step],
+                key: ValueKey(_step),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ),
             const SizedBox(height: 6),
-            const Text('This usually takes 15–30 seconds',
-                style: TextStyle(color: AppColors.textGrey, fontSize: 12.5)),
+            const Text(
+              'This usually takes 15–30 seconds',
+              style: TextStyle(color: AppColors.textGrey, fontSize: 12.5),
+            ),
           ],
         ),
       ),
@@ -484,12 +566,20 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 44, color: AppColors.error),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 44,
+              color: AppColors.error,
+            ),
             const SizedBox(height: 14),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.errorText(context),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(onPressed: onRetry, child: const Text('Try again')),
             const SizedBox(height: 8),

@@ -81,11 +81,17 @@ Strict rules — the candidate will send this to employers, so it must stay true
 - tips: 0–6 short notes on what the candidate should add or check themself.''';
 }
 
-const _categoryKeys = ['formatting', 'impact', 'relevance', 'clarity', 'completeness'];
+const _categoryKeys = [
+  'formatting',
+  'impact',
+  'relevance',
+  'clarity',
+  'completeness',
+];
 
 const _stringArray = {
   'type': 'array',
-  'items': {'type': 'string'}
+  'items': {'type': 'string'},
 };
 
 final Map<String, dynamic> _analysisSchema = {
@@ -104,7 +110,7 @@ final Map<String, dynamic> _analysisSchema = {
               'comment': {'type': 'string'},
             },
             'required': ['score', 'comment'],
-          }
+          },
       },
       'required': _categoryKeys,
     },
@@ -117,7 +123,7 @@ final Map<String, dynamic> _analysisSchema = {
         'properties': {
           'priority': {
             'type': 'string',
-            'enum': ['high', 'medium', 'low']
+            'enum': ['high', 'medium', 'low'],
           },
           'section': {'type': 'string'},
           'issue': {'type': 'string'},
@@ -130,7 +136,15 @@ final Map<String, dynamic> _analysisSchema = {
     },
     'missingKeywords': _stringArray,
   },
-  'required': ['isResume', 'resumeText', 'categories', 'summary', 'strengths', 'improvements', 'missingKeywords'],
+  'required': [
+    'isResume',
+    'resumeText',
+    'categories',
+    'summary',
+    'strengths',
+    'improvements',
+    'missingKeywords',
+  ],
 };
 
 const _entrySchema = {
@@ -168,7 +182,17 @@ const _improvedSchema = {
     'extraSections': {'type': 'array', 'items': _listSectionSchema},
     'tips': _stringArray,
   },
-  'required': ['name', 'contact', 'summary', 'skills', 'experience', 'projects', 'education', 'extraSections', 'tips'],
+  'required': [
+    'name',
+    'contact',
+    'summary',
+    'skills',
+    'experience',
+    'projects',
+    'education',
+    'extraSections',
+    'tips',
+  ],
 };
 
 // ── Read the AI's JSON safely ────────────────────────────────────────────────
@@ -180,7 +204,8 @@ ResumeAnalysis parseAnalysis(
 }) {
   if (json['isResume'] == false) {
     throw const GeminiException(
-        "This file doesn't look like a resume. Please upload your resume or CV as a PDF.");
+      "This file doesn't look like a resume. Please upload your resume or CV as a PDF.",
+    );
   }
 
   final rawCategories = json['categories'];
@@ -190,25 +215,28 @@ ResumeAnalysis parseAnalysis(
         if (rawCategories[key] is Map)
           CategoryScore(
             key: key,
-            score: ((rawCategories[key]['score'] as num?)?.round() ?? 0)
-                .clamp(0, 10),
-            comment:
-                (rawCategories[key]['comment'] as String?)?.trim() ?? '',
+            score: ((rawCategories[key]['score'] as num?)?.round() ?? 0).clamp(
+              0,
+              10,
+            ),
+            comment: (rawCategories[key]['comment'] as String?)?.trim() ?? '',
           ),
   ];
   if (categories.length != _categoryKeys.length) {
     throw const GeminiException(
-        'The AI sent an incomplete review. Please try again.',
-        retryable: true);
+      'The AI sent an incomplete review. Please try again.',
+      retryable: true,
+    );
   }
 
-  final improvements = (json['improvements'] as List<dynamic>? ?? const [])
-      .whereType<Map>()
-      .map((m) => ResumeImprovement.fromMap(Map<String, dynamic>.from(m)))
-      .where((i) => i.issue.isNotEmpty || i.suggestion.isNotEmpty)
-      .take(8)
-      .toList()
-    ..sort((a, b) => a.priority.index.compareTo(b.priority.index));
+  final improvements =
+      (json['improvements'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((m) => ResumeImprovement.fromMap(Map<String, dynamic>.from(m)))
+          .where((i) => i.issue.isNotEmpty || i.suggestion.isNotEmpty)
+          .take(8)
+          .toList()
+        ..sort((a, b) => a.priority.index.compareTo(b.priority.index));
 
   return ResumeAnalysis(
     fileName: fileName,
@@ -230,7 +258,9 @@ ResumeAnalysis parseAnalysis(
 // that the original doesn't have is removed. What was removed is explained in
 // the tips so the user can add it back if it's true.
 ImprovedResume verifyAgainstOriginal(
-    ImprovedResume resume, String originalText) {
+  ImprovedResume resume,
+  String originalText,
+) {
   if (originalText.trim().isEmpty) return resume;
 
   final plain = _normalize(originalText);
@@ -248,11 +278,12 @@ ImprovedResume verifyAgainstOriginal(
     return plain.contains(_normalize(item));
   }
 
-  final removedContact =
-      resume.contact.where((c) => !contactFound(c)).toList();
+  final removedContact = resume.contact.where((c) => !contactFound(c)).toList();
   if (removedContact.isNotEmpty) {
-    tips.add('Removed contact details that are not in your resume: '
-        '${removedContact.join(', ')}. Add your real links yourself.');
+    tips.add(
+      'Removed contact details that are not in your resume: '
+      '${removedContact.join(', ')}. Add your real links yourself.',
+    );
   }
 
   final removedSkills = <String>[];
@@ -271,21 +302,26 @@ ImprovedResume verifyAgainstOriginal(
     }
   }
   if (removedSkills.isNotEmpty) {
-    tips.add('Removed skills that are not in your resume: '
-        '${removedSkills.join(', ')}. Add them only if you really have them.');
+    tips.add(
+      'Removed skills that are not in your resume: '
+      '${removedSkills.join(', ')}. Add them only if you really have them.',
+    );
   }
 
   List<ResumeEntry> checkEntries(List<ResumeEntry> entries) {
     return entries.map((entry) {
       final kept = <String>[];
       for (final bullet in entry.bullets) {
-        final unknown =
-            _numbers(bullet).where((n) => !numbers.contains(n)).toList();
+        final unknown = _numbers(
+          bullet,
+        ).where((n) => !numbers.contains(n)).toList();
         if (unknown.isEmpty) {
           kept.add(bullet);
         } else {
-          tips.add('Removed a line with a number that is not in your resume: '
-              '"$bullet". Add it back only with your real figures.');
+          tips.add(
+            'Removed a line with a number that is not in your resume: '
+            '"$bullet". Add it back only with your real figures.',
+          );
         }
       }
       return ResumeEntry(
@@ -318,9 +354,9 @@ String _normalize(String text) => text
     .replaceAll('www.', '')
     .replaceAll(RegExp(r'[\s/]+'), '');
 
-Iterable<String> _numbers(String text) => RegExp(r'\d+(?:[.,]\d+)?')
-    .allMatches(text)
-    .map((m) => m.group(0)!.replaceAll(',', ''));
+Iterable<String> _numbers(String text) => RegExp(
+  r'\d+(?:[.,]\d+)?',
+).allMatches(text).map((m) => m.group(0)!.replaceAll(',', ''));
 
 ImprovedResume parseImprovedResume(Map<String, dynamic> json) {
   final resume = ImprovedResume.fromMap(json);
@@ -329,8 +365,9 @@ ImprovedResume parseImprovedResume(Map<String, dynamic> json) {
       resume.projects.isEmpty &&
       resume.education.isEmpty) {
     throw const GeminiException(
-        'The AI could not rewrite this resume. Please try again.',
-        retryable: true);
+      'The AI could not rewrite this resume. Please try again.',
+      retryable: true,
+    );
   }
   return resume;
 }
@@ -386,7 +423,9 @@ class ResumeRepository {
       maxOutputTokens: 16384,
     );
     return verifyAgainstOriginal(
-        parseImprovedResume(json), analysis.originalText);
+      parseImprovedResume(json),
+      analysis.originalText,
+    );
   }
 
   // ── Firestore ─────────────────────────────────────────────────────────────
@@ -401,7 +440,10 @@ class ResumeRepository {
   }
 
   Future<void> saveImprovedResume(
-      String uid, String id, ImprovedResume resume) {
+    String uid,
+    String id,
+    ImprovedResume resume,
+  ) {
     return _analyses(uid).doc(id).update({'improvedResume': resume.toMap()});
   }
 
@@ -410,9 +452,11 @@ class ResumeRepository {
         .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => ResumeAnalysis.fromMap(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snap) => snap.docs
+              .map((doc) => ResumeAnalysis.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Future<void> deleteAnalysis(String uid, String id) {

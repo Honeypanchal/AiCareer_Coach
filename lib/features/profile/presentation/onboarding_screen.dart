@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/career_options.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/profile_repository.dart';
 import 'widgets/selectable_chips.dart';
@@ -41,7 +42,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     setState(() => _saving = true);
     try {
-      await ref.read(profileRepositoryProvider).updateProfile(
+      await ref
+          .read(profileRepositoryProvider)
+          .updateProfile(
             uid: uid,
             targetRole: _role,
             experienceLevel: _experience,
@@ -57,9 +60,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _toast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    showErrorSnackBar(context, message);
   }
 
   void _addCustomSkill() {
@@ -83,7 +84,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                 children: [
-                  Text('Let’s personalize', style: theme.textTheme.displayMedium),
+                  Text(
+                    'Let’s personalize',
+                    style: theme.textTheme.displayMedium,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'This is used by Chat, Resume Check, and Mock Interview so answers match your goal.',
@@ -94,9 +98,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: 12),
                   SelectableChips(
                     options: CareerOptions.targetRoles,
-                    selected: {
-                      if (_role != null) _role!,
-                    },
+                    selected: {if (_role != null) _role!},
                     multi: false,
                     onToggle: (value) {
                       setState(() => _role = value);
@@ -123,14 +125,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: 12),
                   SelectableChips(
                     options: CareerOptions.experienceLevels,
-                    selected: {
-                      if (_experience != null) _experience!,
-                    },
+                    selected: {if (_experience != null) _experience!},
                     multi: false,
                     onToggle: (value) => setState(() => _experience = value),
                   ),
                   const SizedBox(height: 28),
-                  Text('Skills (pick a few)', style: theme.textTheme.titleLarge),
+                  Text(
+                    'Skills (pick a few)',
+                    style: theme.textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   SelectableChips(
                     options: {
@@ -175,7 +178,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         height: 22,
                         width: 22,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text('Continue'),
               ),

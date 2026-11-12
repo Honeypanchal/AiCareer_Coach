@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../data/chat_message.model.dart';
 import 'chat_provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -54,7 +54,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Clear chat?'),
         content: const Text(
-            'This will delete your entire chat history. This cannot be undone.'),
+          'This will delete your entire chat history. This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -65,14 +66,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               Navigator.pop(context);
               final cleared = await ref.read(chatProvider.notifier).clearChat();
               if (!cleared && mounted) {
-                ScaffoldMessenger.of(this.context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Could not clear chat. Please try again.')),
+                showErrorSnackBar(
+                  this.context,
+                  'Could not clear chat. Please try again.',
                 );
               }
             },
-            child: const Text('Clear',
-                style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Clear',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -93,8 +96,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     // Auto-scroll whenever a new message arrives
     ref.listen(chatProvider, (previous, next) {
-      if (previous != null &&
-          next.messages.length > previous.messages.length) {
+      if (previous != null && next.messages.length > previous.messages.length) {
         Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
       }
     });
@@ -108,23 +110,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.15),
+                color: AppColors.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.psychology_rounded,
-                  color: AppColors.primary, size: 20),
+              child: const Icon(
+                Icons.psychology_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('AI Career Coach',
-                    style:
-                    TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                const Text(
+                  'AI Career Coach',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
                 Text(
                   chatState.isLoading ? 'Typing...' : 'Always here to help',
-                  style:
-                  const TextStyle(fontSize: 11, color: AppColors.textGrey),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textGrey,
+                  ),
                 ),
               ],
             ),
@@ -146,22 +154,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: chatState.isLoadingHistory
                 ? const Center(child: CircularProgressIndicator())
                 : ListView.builder(
-              controller: _scrollController,
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              // +1 for the typing indicator when loading
-              itemCount: chatState.messages.length +
-                  (chatState.isLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Show typing indicator as the last item
-                if (index == chatState.messages.length) {
-                  return const _TypingIndicator();
-                }
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    // +1 for the typing indicator when loading
+                    itemCount:
+                        chatState.messages.length +
+                        (chatState.isLoading ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      // Show typing indicator as the last item
+                      if (index == chatState.messages.length) {
+                        return const _TypingIndicator();
+                      }
 
-                final msg = chatState.messages[index];
-                return _ChatBubble(message: msg, isDark: isDark);
-              },
-            ),
+                      final msg = chatState.messages[index];
+                      return _ChatBubble(message: msg, isDark: isDark);
+                    },
+                  ),
           ),
 
           // ── Input bar ────────────────────────────────────────────────────
@@ -191,10 +202,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Ask anything...',
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         filled: true,
-                        fillColor:
-                        isDark ? AppColors.darkCard : AppColors.lightBg,
+                        fillColor: isDark
+                            ? AppColors.darkCard
+                            : AppColors.lightBg,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
@@ -210,12 +224,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       height: 46,
                       decoration: BoxDecoration(
                         color: chatState.isLoading
-                            ? AppColors.primary.withOpacity(0.4)
+                            ? AppColors.primary.withValues(alpha: 0.4)
                             : AppColors.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -242,8 +259,9 @@ class _ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment:
-        isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
@@ -252,8 +270,8 @@ class _ChatBubble extends StatelessWidget {
               height: 30,
               decoration: BoxDecoration(
                 color: message.isError
-                    ? AppColors.error.withOpacity(0.15)
-                    : AppColors.primary.withOpacity(0.15),
+                    ? AppColors.error.withValues(alpha: 0.15)
+                    : AppColors.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -268,20 +286,23 @@ class _ChatBubble extends StatelessWidget {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment:
-              isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: isUser
                         ? AppColors.primary
                         : message.isError
-                        ? AppColors.error.withOpacity(0.08)
+                        ? AppColors.error.withValues(alpha: 0.08)
                         : (isDark
-                        ? AppColors.darkCard
-                        : AppColors.lightSurface),
+                              ? AppColors.darkCard
+                              : AppColors.lightSurface),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
                       topRight: const Radius.circular(18),
@@ -291,58 +312,62 @@ class _ChatBubble extends StatelessWidget {
                     border: isUser
                         ? null
                         : Border.all(
-                      color: message.isError
-                          ? AppColors.error.withOpacity(0.3)
-                          : (isDark
-                          ? const Color(0xFF2A2A40)
-                          : const Color(0xFFEEEEF9)),
-                      width: 0.5,
-                    ),
+                            color: message.isError
+                                ? AppColors.error.withValues(alpha: 0.3)
+                                : (isDark
+                                      ? const Color(0xFF2A2A40)
+                                      : const Color(0xFFEEEEF9)),
+                            width: 0.5,
+                          ),
                   ),
                   // ── Markdown rendering for AI messages ─────────────────────
                   // User messages are plain text; AI messages support
                   // **bold**, bullet lists, `code`, etc.
                   child: isUser
                       ? Text(
-                    message.text,
-                    style: const TextStyle(
-                        color: Colors.white, fontSize: 14, height: 1.5),
-                  )
+                          message.text,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                        )
                       : MarkdownBody(
-                    data: message.text,
-                    selectable: true,
-                    styleSheet: MarkdownStyleSheet(
-                      p: TextStyle(
-                        fontSize: 14,
-                        height: 1.5,
-                        color: message.isError
-                            ? AppColors.error
-                            : (isDark
-                            ? AppColors.textWhite
-                            : AppColors.textDark),
-                      ),
-                      strong: const TextStyle(
-                          fontWeight: FontWeight.bold),
-                      code: TextStyle(
-                        backgroundColor: isDark
-                            ? const Color(0xFF0F0F14)
-                            : const Color(0xFFF4F4FB),
-                        fontFamily: 'monospace',
-                        fontSize: 13,
-                      ),
-                      codeblockDecoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF0F0F14)
-                            : const Color(0xFFF4F4FB),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      listBullet: TextStyle(
-                        color: isDark
-                            ? AppColors.textWhite
-                            : AppColors.textDark,
-                      ),
-                    ),
-                  ),
+                          data: message.text,
+                          selectable: true,
+                          styleSheet: MarkdownStyleSheet(
+                            p: TextStyle(
+                              fontSize: 14,
+                              height: 1.5,
+                              color: message.isError
+                                  ? AppColors.error
+                                  : (isDark
+                                        ? AppColors.textWhite
+                                        : AppColors.textDark),
+                            ),
+                            strong: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            code: TextStyle(
+                              backgroundColor: isDark
+                                  ? const Color(0xFF0F0F14)
+                                  : const Color(0xFFF4F4FB),
+                              fontFamily: 'monospace',
+                              fontSize: 13,
+                            ),
+                            codeblockDecoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF0F0F14)
+                                  : const Color(0xFFF4F4FB),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            listBullet: TextStyle(
+                              color: isDark
+                                  ? AppColors.textWhite
+                                  : AppColors.textDark,
+                            ),
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -351,7 +376,9 @@ class _ChatBubble extends StatelessWidget {
                     Text(
                       message.formattedTime,
                       style: const TextStyle(
-                          fontSize: 11, color: AppColors.textGrey),
+                        fontSize: 11,
+                        color: AppColors.textGrey,
+                      ),
                     ),
                     // Retry button on error messages
                     if (message.isError) ...[
@@ -363,14 +390,20 @@ class _ChatBubble extends StatelessWidget {
                               .retryLastMessage(),
                           child: const Row(
                             children: [
-                              Icon(Icons.refresh_rounded,
-                                  size: 12, color: AppColors.primary),
+                              Icon(
+                                Icons.refresh_rounded,
+                                size: 12,
+                                color: AppColors.primary,
+                              ),
                               SizedBox(width: 2),
-                              Text('Retry',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w600)),
+                              Text(
+                                'Retry',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -428,11 +461,14 @@ class _TypingIndicatorState extends State<_TypingIndicator>
             width: 30,
             height: 30,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.psychology_rounded,
-                color: AppColors.primary, size: 16),
+            child: const Icon(
+              Icons.psychology_rounded,
+              color: AppColors.primary,
+              size: 16,
+            ),
           ),
           const SizedBox(width: 8),
           Container(
@@ -460,8 +496,10 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                   children: List.generate(3, (i) {
                     // Each dot animates with a slight delay (i * 0.2)
                     final delay = i * 0.2;
-                    final value =
-                    ((_controller.value - delay) % 1.0).clamp(0.0, 1.0);
+                    final value = ((_controller.value - delay) % 1.0).clamp(
+                      0.0,
+                      1.0,
+                    );
                     final scale = value < 0.5
                         ? 1.0 + (value * 2 * 0.4)
                         : 1.4 - ((value - 0.5) * 2 * 0.4);

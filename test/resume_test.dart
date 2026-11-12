@@ -12,26 +12,40 @@ import 'package:ai_career_coach/features/resume/presentation/resume_check_contro
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> _analysisJson({bool isResume = true}) => {
-      'isResume': isResume,
-      'resumeText': 'Asha Rao asha@example.com Flutter Dart',
-      'categories': {
-        'formatting': {'score': 8, 'comment': 'Clean'},
-        'impact': {'score': 4, 'comment': 'Duties only'},
-        'relevance': {'score': 7, 'comment': 'Good match'},
-        'clarity': {'score': 6, 'comment': 'OK'},
-        'completeness': {'score': 5, 'comment': 'No links'},
-      },
-      'summary': 'Decent start.',
-      'strengths': ['Clear layout'],
-      'improvements': [
-        {'priority': 'low', 'section': 'Hobbies', 'issue': 'Not needed', 'suggestion': 'Remove'},
-        {'priority': 'high', 'section': 'Projects', 'issue': 'No results', 'suggestion': 'Show impact'},
-      ],
-      'missingKeywords': ['Git'],
-    };
+  'isResume': isResume,
+  'resumeText': 'Asha Rao asha@example.com Flutter Dart',
+  'categories': {
+    'formatting': {'score': 8, 'comment': 'Clean'},
+    'impact': {'score': 4, 'comment': 'Duties only'},
+    'relevance': {'score': 7, 'comment': 'Good match'},
+    'clarity': {'score': 6, 'comment': 'OK'},
+    'completeness': {'score': 5, 'comment': 'No links'},
+  },
+  'summary': 'Decent start.',
+  'strengths': ['Clear layout'],
+  'improvements': [
+    {
+      'priority': 'low',
+      'section': 'Hobbies',
+      'issue': 'Not needed',
+      'suggestion': 'Remove',
+    },
+    {
+      'priority': 'high',
+      'section': 'Projects',
+      'issue': 'No results',
+      'suggestion': 'Show impact',
+    },
+  ],
+  'missingKeywords': ['Git'],
+};
 
-ResumeAnalysis _analysis() => parseAnalysis(_analysisJson(),
-    fileName: 'cv.pdf', targetRole: 'Flutter Developer', usedJobDescription: false);
+ResumeAnalysis _analysis() => parseAnalysis(
+  _analysisJson(),
+  fileName: 'cv.pdf',
+  targetRole: 'Flutter Developer',
+  usedJobDescription: false,
+);
 
 class _FakeResumeRepository extends Fake implements ResumeRepository {
   Object? failAnalyze;
@@ -64,10 +78,15 @@ class _FakeResumeRepository extends Fake implements ResumeRepository {
   }
 
   @override
-  Future<String> saveAnalysis(String uid, ResumeAnalysis analysis) async => 'doc-1';
+  Future<String> saveAnalysis(String uid, ResumeAnalysis analysis) async =>
+      'doc-1';
 
   @override
-  Future<void> saveImprovedResume(String uid, String id, ImprovedResume resume) async {}
+  Future<void> saveImprovedResume(
+    String uid,
+    String id,
+    ImprovedResume resume,
+  ) async {}
 }
 
 final _pdfBytes = Uint8List.fromList(utf8.encode('%PDF-1.7 test'));
@@ -80,8 +99,10 @@ void main() {
     });
 
     test('improvements are sorted with high priority first', () {
-      expect(_analysis().improvements.map((i) => i.priority),
-          [ImprovementPriority.high, ImprovementPriority.low]);
+      expect(_analysis().improvements.map((i) => i.priority), [
+        ImprovementPriority.high,
+        ImprovementPriority.low,
+      ]);
     });
 
     test('keeps the original text for the accuracy check', () {
@@ -90,21 +111,43 @@ void main() {
 
     test('a document that is not a resume is rejected', () {
       expect(
-        () => parseAnalysis(_analysisJson(isResume: false),
-            fileName: 'x.pdf', targetRole: '', usedJobDescription: false),
-        throwsA(isA<GeminiException>()
-            .having((e) => e.message, 'message', contains("doesn't look like a resume"))
-            .having((e) => e.retryable, 'retryable', isFalse)),
+        () => parseAnalysis(
+          _analysisJson(isResume: false),
+          fileName: 'x.pdf',
+          targetRole: '',
+          usedJobDescription: false,
+        ),
+        throwsA(
+          isA<GeminiException>()
+              .having(
+                (e) => e.message,
+                'message',
+                contains("doesn't look like a resume"),
+              )
+              .having((e) => e.retryable, 'retryable', isFalse),
+        ),
       );
     });
 
     test('a review with missing categories can be retried', () {
-      final json = _analysisJson()..['categories'] = {'formatting': {'score': 5}};
+      final json = _analysisJson()
+        ..['categories'] = {
+          'formatting': {'score': 5},
+        };
       expect(
-        () => parseAnalysis(json,
-            fileName: 'x.pdf', targetRole: '', usedJobDescription: false),
-        throwsA(isA<GeminiException>()
-            .having((e) => e.retryable, 'retryable', isTrue)),
+        () => parseAnalysis(
+          json,
+          fileName: 'x.pdf',
+          targetRole: '',
+          usedJobDescription: false,
+        ),
+        throwsA(
+          isA<GeminiException>().having(
+            (e) => e.retryable,
+            'retryable',
+            isTrue,
+          ),
+        ),
       );
     });
   });
@@ -129,10 +172,13 @@ Built a shopping app used by 200 students.''';
         ResumeListSection(title: 'Cloud', items: ['AWS']),
       ],
       projects: [
-        ResumeEntry(title: 'Shopping App', bullets: [
-          'Built a shopping app used by 200 students.',
-          'Cut load time by 40% with caching.',
-        ]),
+        ResumeEntry(
+          title: 'Shopping App',
+          bullets: [
+            'Built a shopping app used by 200 students.',
+            'Cut load time by 40% with caching.',
+          ],
+        ),
       ],
     );
 
@@ -152,8 +198,9 @@ Built a shopping app used by 200 students.''';
     });
 
     test('removes bullets with numbers that are not in the original', () {
-      expect(checked.projects.single.bullets,
-          ['Built a shopping app used by 200 students.']);
+      expect(checked.projects.single.bullets, [
+        'Built a shopping app used by 200 students.',
+      ]);
     });
 
     test('explains every removal in the tips', () {
@@ -170,23 +217,36 @@ Built a shopping app used by 200 students.''';
 
   group('PDF', () {
     test('builds a PDF with the built-in font', () async {
-      final bytes = await buildResumePdf(const ImprovedResume(
-        name: 'Asha Rao',
-        headline: 'Flutter Developer',
-        contact: ['asha@example.com'],
-        summary: 'Builds apps – fast “and” clean.',
-        skills: [ResumeListSection(title: 'Mobile', items: ['Flutter'])],
-        projects: [
-          ResumeEntry(title: 'App', period: 'Jan 2024 – Present', bullets: ['Did a thing'])
-        ],
-        education: [ResumeEntry(title: 'B.E.', organization: 'College')],
-        extraSections: [ResumeListSection(title: 'Awards', items: ['Hackathon winner'])],
-      ));
+      final bytes = await buildResumePdf(
+        const ImprovedResume(
+          name: 'Asha Rao',
+          headline: 'Flutter Developer',
+          contact: ['asha@example.com'],
+          summary: 'Builds apps – fast “and” clean.',
+          skills: [
+            ResumeListSection(title: 'Mobile', items: ['Flutter']),
+          ],
+          projects: [
+            ResumeEntry(
+              title: 'App',
+              period: 'Jan 2024 – Present',
+              bullets: ['Did a thing'],
+            ),
+          ],
+          education: [ResumeEntry(title: 'B.E.', organization: 'College')],
+          extraSections: [
+            ResumeListSection(title: 'Awards', items: ['Hackathon winner']),
+          ],
+        ),
+      );
       expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     });
 
     test('latinSafe swaps characters Helvetica cannot draw', () {
-      expect(latinSafe('Jan – Present “ok” ₹5 • 日本'), 'Jan - Present "ok" Rs.5 - ');
+      expect(
+        latinSafe('Jan – Present “ok” ₹5 • 日本'),
+        'Jan - Present "ok" Rs.5 - ',
+      );
       expect(latinSafe('Café'), 'Café');
     });
   });
@@ -198,7 +258,13 @@ Built a shopping app used by 200 students.''';
         improvedResume: const ImprovedResume(
           name: 'Asha Rao',
           contact: ['asha@example.com'],
-          experience: [ResumeEntry(title: 'Intern', organization: 'Acme', bullets: ['Built X'])],
+          experience: [
+            ResumeEntry(
+              title: 'Intern',
+              organization: 'Acme',
+              bullets: ['Built X'],
+            ),
+          ],
           tips: ['Add a link'],
         ),
       );
@@ -254,7 +320,9 @@ Built a shopping app used by 200 students.''';
 
     test('going back from an error returns to upload', () async {
       final repo = _FakeResumeRepository()
-        ..failAnalyze = const GeminiException("This file doesn't look like a resume.");
+        ..failAnalyze = const GeminiException(
+          "This file doesn't look like a resume.",
+        );
       final notifier = ResumeCheckNotifier(repo, 'u1');
       notifier.setFile('cv.pdf', _pdfBytes);
 

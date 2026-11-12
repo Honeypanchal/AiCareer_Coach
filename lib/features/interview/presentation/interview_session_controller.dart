@@ -85,7 +85,7 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
   Future<void> Function()? _retry;
 
   InterviewSessionNotifier(this._repository, this.config, this._uid)
-      : super(const InterviewSessionState()) {
+    : super(const InterviewSessionState()) {
     _loadFirstQuestion();
   }
 
@@ -143,14 +143,16 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
         nextIsFollowUp: result.nextIsFollowUp,
       );
     } catch (e) {
-      _fail(e, InterviewPhase.answering,
-          () => submitAnswer(text, skipped: skipped));
+      _fail(
+        e,
+        InterviewPhase.answering,
+        () => submitAnswer(text, skipped: skipped),
+      );
     }
   }
 
   bool get hasNextQuestion =>
-      state.nextQuestion != null &&
-      state.turns.length < config.questionCount;
+      state.nextQuestion != null && state.turns.length < config.questionCount;
 
   // ── Move on from the feedback card ────────────────────────────────────────
   Future<void> next() async {
@@ -218,7 +220,11 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
   }
 
   // ── Errors ────────────────────────────────────────────────────────────────
-  void _fail(Object error, InterviewPhase backTo, Future<void> Function() retry) {
+  void _fail(
+    Object error,
+    InterviewPhase backTo,
+    Future<void> Function() retry,
+  ) {
     if (!mounted) return;
     _retry = retry;
     state = state.copyWith(
@@ -231,7 +237,9 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
   Future<void> retry() async {
     final retry = _retry;
     final backTo = state.phaseBeforeError;
-    if (state.phase != InterviewPhase.error || retry == null || backTo == null) {
+    if (state.phase != InterviewPhase.error ||
+        retry == null ||
+        backTo == null) {
       return;
     }
     _retry = null;
@@ -243,11 +251,13 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
 // A new notifier for every InterviewConfig object, dropped when the
 // session screen closes.
 final interviewSessionProvider = StateNotifierProvider.autoDispose
-    .family<InterviewSessionNotifier, InterviewSessionState, InterviewConfig>(
-        (ref, config) {
-  return InterviewSessionNotifier(
-    ref.watch(interviewRepositoryProvider),
-    config,
-    ref.read(currentUserUidProvider),
-  );
-});
+    .family<InterviewSessionNotifier, InterviewSessionState, InterviewConfig>((
+      ref,
+      config,
+    ) {
+      return InterviewSessionNotifier(
+        ref.watch(interviewRepositoryProvider),
+        config,
+        ref.read(currentUserUidProvider),
+      );
+    });

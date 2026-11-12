@@ -50,7 +50,9 @@ class _ImprovedResumeScreenState extends State<ImprovedResumeScreen> {
     if (resume == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Improved CV')),
-        body: const Center(child: Text('Please start again from Resume Check.')),
+        body: const Center(
+          child: Text('Please start again from Resume Check.'),
+        ),
       );
     }
 
@@ -64,20 +66,26 @@ class _ImprovedResumeScreenState extends State<ImprovedResumeScreen> {
               padding: EdgeInsets.zero,
               borderColor: AppColors.warning,
               child: Theme(
-                data: Theme.of(context)
-                    .copyWith(dividerColor: Colors.transparent),
+                data: Theme.of(
+                  context,
+                ).copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
-                  leading: const Icon(Icons.fact_check_outlined,
-                      color: AppColors.warning),
-                  title: const Text('Check before you send',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 14)),
+                  leading: const Icon(
+                    Icons.fact_check_outlined,
+                    color: AppColors.warning,
+                  ),
+                  title: const Text(
+                    'Check before you send',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
                   subtitle: Text(
                     resume.tips.isEmpty
                         ? 'Read it once to make sure every detail is right'
                         : '${resume.tips.length} thing${resume.tips.length == 1 ? '' : 's'} to add or check',
                     style: const TextStyle(
-                        color: AppColors.textGrey, fontSize: 12),
+                      color: AppColors.textGrey,
+                      fontSize: 12,
+                    ),
                   ),
                   childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   children: [

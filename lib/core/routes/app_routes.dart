@@ -58,7 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthLoading = notifier.isAuthLoading;
       final splashReady = notifier.splashMinTimePassed;
 
-      final isAuthRoute = location == AppRoutes.login ||
+      final isAuthRoute =
+          location == AppRoutes.login ||
           location == AppRoutes.signup ||
           location == AppRoutes.forgotPassword ||
           location == AppRoutes.splash;
@@ -96,31 +97,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.login,
-        pageBuilder: (context, state) => _fadeTransition(
-          state: state,
-          child: const LoginScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _fadeTransition(state: state, child: const LoginScreen()),
       ),
       GoRoute(
         path: AppRoutes.signup,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const SignupScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const SignupScreen()),
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const ForgotPasswordScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const ForgotPasswordScreen()),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const OnboardingScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const OnboardingScreen()),
       ),
       GoRoute(
         path: AppRoutes.home,
@@ -128,31 +121,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.editProfile,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const EditProfileScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const EditProfileScreen()),
       ),
       GoRoute(
         path: AppRoutes.appearance,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const AppearanceScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const AppearanceScreen()),
       ),
       GoRoute(
         path: AppRoutes.about,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const AboutScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const AboutScreen()),
       ),
       GoRoute(
         path: AppRoutes.changePassword,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const ChangePasswordScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const ChangePasswordScreen()),
       ),
       GoRoute(
         path: AppRoutes.interviewHistory,
@@ -187,17 +172,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.resumeHistory,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const ResumeHistoryScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const ResumeHistoryScreen()),
       ),
       GoRoute(
         path: AppRoutes.resumeCheck,
-        pageBuilder: (context, state) => _slideTransition(
-          state: state,
-          child: const ResumeCheckScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            _slideTransition(state: state, child: const ResumeCheckScreen()),
       ),
       GoRoute(
         path: AppRoutes.improvedResume,
@@ -224,9 +205,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Page not found: ${state.error}')),
-    ),
+    errorBuilder: (context, state) =>
+        Scaffold(body: Center(child: Text('Page not found: ${state.error}'))),
   );
 });
 
@@ -239,7 +219,9 @@ class _MissingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: const Center(child: Text('Please start again from the Interview tab.')),
+      body: const Center(
+        child: Text('Please start again from the Interview tab.'),
+      ),
     );
   }
 }

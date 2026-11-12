@@ -14,13 +14,25 @@ class InterviewScreen extends ConsumerWidget {
   const InterviewScreen({super.key});
 
   static const _topics = [
-    {'label': 'Flutter', 'icon': Icons.phone_android_rounded, 'color': 0xFF6C63FF},
+    {
+      'label': 'Flutter',
+      'icon': Icons.phone_android_rounded,
+      'color': 0xFF6C63FF,
+    },
     {'label': 'React', 'icon': Icons.web_rounded, 'color': 0xFF61DAFB},
     {'label': 'Python', 'icon': Icons.code_rounded, 'color': 0xFF3776AB},
     {'label': 'DSA', 'icon': Icons.account_tree_rounded, 'color': 0xFF4CAF82},
     {'label': 'Java', 'icon': Icons.coffee_rounded, 'color': 0xFFFF6B35},
-    {'label': 'HR Round', 'icon': Icons.people_outline_rounded, 'color': 0xFFFF5C7D},
-    {'label': 'System Design', 'icon': Icons.architecture_rounded, 'color': 0xFFFFB347},
+    {
+      'label': 'HR Round',
+      'icon': Icons.people_outline_rounded,
+      'color': 0xFFFF5C7D,
+    },
+    {
+      'label': 'System Design',
+      'icon': Icons.architecture_rounded,
+      'color': 0xFFFFB347,
+    },
     {'label': 'SQL', 'icon': Icons.storage_rounded, 'color': 0xFF00BCD4},
     {'label': 'Custom topic', 'icon': Icons.edit_outlined, 'color': 0xFF9090A8},
   ];
@@ -45,31 +57,38 @@ class InterviewScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               Text('Mock Interview', style: theme.textTheme.displayMedium),
               const SizedBox(height: 6),
-              Text('Pick a topic and practice with AI',
-                  style: theme.textTheme.bodyMedium),
+              Text(
+                'Pick a topic and practice with AI',
+                style: theme.textTheme.bodyMedium,
+              ),
 
               const SizedBox(height: 24),
 
               // ── Stats row ────────────────────────────────────────────────
-              Row(children: [
-                _StatCard(
+              Row(
+                children: [
+                  _StatCard(
                     label: 'Sessions',
                     value: '${stats.sessions}',
-                    isDark: isDark),
-                const SizedBox(width: 12),
-                _StatCard(
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 12),
+                  _StatCard(
                     label: 'Avg Score',
                     value: stats.averageScore == null
                         ? '--'
                         : '${stats.averageScore}%',
-                    isDark: isDark),
-                const SizedBox(width: 12),
-                _StatCard(
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 12),
+                  _StatCard(
                     label: 'Best Topic',
                     value: stats.bestTopic ?? '--',
                     isDark: isDark,
-                    small: stats.bestTopic != null),
-              ]),
+                    small: stats.bestTopic != null,
+                  ),
+                ],
+              ),
 
               // ── Practice for the profile's target role ───────────────────
               if (role.isNotEmpty) ...[
@@ -87,26 +106,38 @@ class InterviewScreen extends ConsumerWidget {
                       ),
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: Row(children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Recommended for you',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Recommended for you',
                                 style: TextStyle(
-                                    color: Colors.white70, fontSize: 12)),
-                            const SizedBox(height: 4),
-                            Text('$role interview',
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$role interview',
                                 style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold)),
-                          ],
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const Icon(Icons.play_circle_fill_rounded,
-                          color: Colors.white, size: 36),
-                    ]),
+                        const Icon(
+                          Icons.play_circle_fill_rounded,
+                          color: Colors.white,
+                          size: 36,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -131,12 +162,16 @@ class InterviewScreen extends ConsumerWidget {
                   final label = topic['label'] as String;
                   final color = Color(topic['color'] as int);
                   return GestureDetector(
-                    onTap: () => showInterviewSetupSheet(context,
-                        topic: label == 'Custom topic' ? null : label),
+                    onTap: () => showInterviewSetupSheet(
+                      context,
+                      topic: label == 'Custom topic' ? null : label,
+                    ),
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCard : AppColors.lightSurface,
+                        color: isDark
+                            ? AppColors.darkCard
+                            : AppColors.lightSurface,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isDark
@@ -155,13 +190,18 @@ class InterviewScreen extends ConsumerWidget {
                               color: color.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(topic['icon'] as IconData,
-                                color: color, size: 20),
+                            child: Icon(
+                              topic['icon'] as IconData,
+                              color: color,
+                              size: 20,
+                            ),
                           ),
                           Text(
                             label,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 14),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),
@@ -174,8 +214,10 @@ class InterviewScreen extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Recent Sessions',
-                        style: theme.textTheme.titleLarge),
+                    child: Text(
+                      'Recent Sessions',
+                      style: theme.textTheme.titleLarge,
+                    ),
                   ),
                   if (sessions.isNotEmpty)
                     TextButton(
@@ -197,10 +239,14 @@ class InterviewScreen extends ConsumerWidget {
                       : 'Start a mock interview above',
                 )
               else
-                ...sessions.take(3).map((s) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: InterviewSessionTile(session: s),
-                    )),
+                ...sessions
+                    .take(3)
+                    .map(
+                      (s) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: InterviewSessionTile(session: s),
+                      ),
+                    ),
 
               const SizedBox(height: 24),
             ],
@@ -237,16 +283,25 @@ class _EmptyState extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.history_rounded,
-              color: AppColors.textGrey.withValues(alpha: 0.5), size: 40),
+          Icon(
+            Icons.history_rounded,
+            color: AppColors.textGrey.withValues(alpha: 0.5),
+            size: 40,
+          ),
           const SizedBox(height: 12),
-          Text(title,
-              style: const TextStyle(
-                  color: AppColors.textGrey, fontWeight: FontWeight.w500)),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.textGrey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textGrey, fontSize: 13)),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textGrey, fontSize: 13),
+          ),
         ],
       ),
     );
@@ -276,25 +331,28 @@ class _StatCard extends StatelessWidget {
           color: isDark ? AppColors.darkCard : AppColors.lightSurface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color:
-            isDark ? const Color(0xFF2A2A40) : const Color(0xFFEEEEF9),
+            color: isDark ? const Color(0xFF2A2A40) : const Color(0xFFEEEEF9),
             width: 0.5,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    fontSize: small ? 14 : 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary)),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: small ? 14 : 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textGrey)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppColors.textGrey),
+            ),
           ],
         ),
       ),

@@ -74,15 +74,15 @@ class InterviewTurn {
   });
 
   Map<String, dynamic> toMap() => {
-        'question': question,
-        'isFollowUp': isFollowUp,
-        'answer': answer,
-        'skipped': skipped,
-        'score': score,
-        'good': good,
-        'missing': missing,
-        'modelAnswer': modelAnswer,
-      };
+    'question': question,
+    'isFollowUp': isFollowUp,
+    'answer': answer,
+    'skipped': skipped,
+    'score': score,
+    'good': good,
+    'missing': missing,
+    'modelAnswer': modelAnswer,
+  };
 
   factory InterviewTurn.fromMap(Map<String, dynamic> map) {
     return InterviewTurn(
@@ -122,12 +122,12 @@ class InterviewReport {
   }
 
   Map<String, dynamic> toMap() => {
-        'overallScore': overallScore,
-        'summary': summary,
-        'strongAreas': strongAreas,
-        'weakAreas': weakAreas,
-        'practiceNext': practiceNext,
-      };
+    'overallScore': overallScore,
+    'summary': summary,
+    'strongAreas': strongAreas,
+    'weakAreas': weakAreas,
+    'practiceNext': practiceNext,
+  };
 
   factory InterviewReport.fromMap(Map<String, dynamic>? map) {
     final data = map ?? const <String, dynamic>{};
@@ -161,12 +161,12 @@ class InterviewSession {
   });
 
   Map<String, dynamic> toMap() => {
-        'topic': topic,
-        'difficulty': difficulty.name,
-        'createdAt': Timestamp.fromDate(createdAt),
-        'turns': turns.map((t) => t.toMap()).toList(),
-        'report': report.toMap(),
-      };
+    'topic': topic,
+    'difficulty': difficulty.name,
+    'createdAt': Timestamp.fromDate(createdAt),
+    'turns': turns.map((t) => t.toMap()).toList(),
+    'report': report.toMap(),
+  };
 
   factory InterviewSession.fromMap(String id, Map<String, dynamic> map) {
     final created = map['createdAt'];
@@ -180,7 +180,8 @@ class InterviewSession {
           .map((t) => InterviewTurn.fromMap(Map<String, dynamic>.from(t)))
           .toList(),
       report: InterviewReport.fromMap(
-          (map['report'] as Map?)?.cast<String, dynamic>()),
+        (map['report'] as Map?)?.cast<String, dynamic>(),
+      ),
     );
   }
 }
@@ -200,8 +201,10 @@ class InterviewStats {
   factory InterviewStats.from(List<InterviewSession> sessions) {
     if (sessions.isEmpty) return const InterviewStats(sessions: 0);
 
-    final total =
-        sessions.fold<int>(0, (acc, s) => acc + s.report.overallScore);
+    final total = sessions.fold<int>(
+      0,
+      (acc, s) => acc + s.report.overallScore,
+    );
 
     final byTopic = <String, List<int>>{};
     for (final s in sessions) {

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/career_options.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/profile_avatar.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/profile_repository.dart';
@@ -52,8 +53,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _headline.text = profile.headline;
     _location.text = profile.location;
     _role = profile.targetRole.isEmpty ? null : profile.targetRole;
-    _experience =
-        profile.experienceLevel.isEmpty ? null : profile.experienceLevel;
+    _experience = profile.experienceLevel.isEmpty
+        ? null
+        : profile.experienceLevel;
     _skills.addAll(profile.skills);
     if (_role != null && !CareerOptions.targetRoles.contains(_role)) {
       _customRole.text = _role!;
@@ -92,18 +94,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     setState(() => _uploadingPhoto = true);
     try {
-      await ref.read(profileRepositoryProvider).uploadAvatar(
-            uid: profile.uid,
-            file: File(picked.path),
-          );
+      await ref
+          .read(profileRepositoryProvider)
+          .uploadAvatar(uid: profile.uid, file: File(picked.path));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Photo upload failed. Check Firebase Storage rules for your uid.',
-            ),
-          ),
+        showErrorSnackBar(
+          context,
+          'Photo upload failed. Please try again later.',
         );
       }
     } finally {
@@ -114,15 +112,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _save(UserProfile profile) async {
     if (!_formKey.currentState!.validate()) return;
     if (_role == null || _experience == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a target role and experience.')),
-      );
+      showErrorSnackBar(context, 'Select a target role and experience.');
       return;
     }
 
     setState(() => _saving = true);
     try {
-      await ref.read(profileRepositoryProvider).updateProfile(
+      await ref
+          .read(profileRepositoryProvider)
+          .updateProfile(
             uid: profile.uid,
             name: _name.text,
             headline: _headline.text,
@@ -135,9 +133,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (mounted) context.pop();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not save. Please try again.')),
-        );
+        showErrorSnackBar(context, 'Could not save. Please try again.');
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -163,18 +159,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final profileAsync = ref.watch(userProfileProvider(uid));
 
     return profileAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: const Text('Edit profile')),
         body: Center(child: Text('Could not load profile.\n$e')),
       ),
       data: (profile) {
         if (profile == null) {
-          return const Scaffold(
-            body: Center(child: Text('Profile not found')),
-          );
+          return const Scaffold(body: Center(child: Text('Profile not found')));
         }
         if (!_hydrated) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -214,8 +207,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Center(
-                  child: Text('Tap to change photo',
-                      style: TextStyle(color: AppColors.textGrey, fontSize: 13)),
+                  child: Text(
+                    'Tap to change photo',
+                    style: TextStyle(color: AppColors.textGrey, fontSize: 13),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 TextFormField(
@@ -237,7 +232,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   controller: _headline,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(
-                    hintText: 'Headline (e.g. Flutter dev | Open to internships)',
+                    hintText:
+                        'Headline (e.g. Flutter dev | Open to internships)',
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),
                 ),
@@ -251,7 +247,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Target role', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Target role',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 12),
                 SelectableChips(
                   options: CareerOptions.targetRoles,
@@ -278,7 +277,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                Text('Experience', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Experience',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 12),
                 SelectableChips(
                   options: CareerOptions.experienceLevels,
@@ -328,7 +330,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           height: 22,
                           width: 22,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text('Save changes'),
                 ),

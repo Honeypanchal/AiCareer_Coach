@@ -14,9 +14,11 @@ class InterviewReportScreen extends StatelessWidget {
     final session = this.session;
     return Scaffold(
       appBar: AppBar(
-        title: Text(session == null
-            ? 'Interview report'
-            : formatShortDate(session.createdAt)),
+        title: Text(
+          session == null
+              ? 'Interview report'
+              : formatShortDate(session.createdAt),
+        ),
       ),
       body: session == null
           ? const Center(child: Text('This report is no longer available.'))

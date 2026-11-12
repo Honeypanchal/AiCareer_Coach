@@ -22,8 +22,18 @@ String scoreLabel(int percent) {
 
 String formatShortDate(DateTime date) {
   const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   return '${date.day} ${months[date.month - 1]} ${date.year}';
 }
@@ -50,7 +60,8 @@ class InterviewCard extends StatelessWidget {
         color: isDark ? AppColors.darkCard : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: borderColor ??
+          color:
+              borderColor ??
               (isDark ? const Color(0xFF2A2A40) : const Color(0xFFEEEEF9)),
           width: borderColor == null ? 0.5 : 1,
         ),
@@ -77,7 +88,10 @@ class Tag extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-            color: color, fontSize: 11, fontWeight: FontWeight.w600),
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -100,7 +114,10 @@ class ScoreBadge extends StatelessWidget {
       child: Text(
         '$score/10',
         style: TextStyle(
-            color: color, fontWeight: FontWeight.bold, fontSize: 15),
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 15,
+        ),
       ),
     );
   }
@@ -128,27 +145,32 @@ class PointList extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 14)),
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
           const SizedBox(height: 8),
-          ...points.map((p) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Icon(icon, size: 16, color: color),
+          ...points.map(
+            (p) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(icon, size: 16, color: color),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      p,
+                      style: const TextStyle(fontSize: 13.5, height: 1.4),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(p,
-                          style: const TextStyle(fontSize: 13.5, height: 1.4)),
-                    ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -176,16 +198,24 @@ class ModelAnswer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(children: [
-              Icon(Icons.lightbulb_outline_rounded,
-                  size: 16, color: AppColors.primary),
-              SizedBox(width: 6),
-              Text('Model answer',
+            const Row(
+              children: [
+                Icon(
+                  Icons.lightbulb_outline_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
+                SizedBox(width: 6),
+                Text(
+                  'Model answer',
                   style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: AppColors.primary)),
-            ]),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             MarkdownBody(
               data: text,
@@ -278,17 +308,20 @@ class InterviewReportView extends StatelessWidget {
                       child: Text(
                         '${report.overallScore}%',
                         style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: color),
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
-              Text(scoreLabel(report.overallScore),
-                  style: theme.textTheme.titleLarge),
+              Text(
+                scoreLabel(report.overallScore),
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -297,15 +330,18 @@ class InterviewReportView extends StatelessWidget {
                   Tag(label: session.topic),
                   Tag(label: session.difficulty.label),
                   Tag(
-                      label:
-                          '${session.turns.length} question${session.turns.length == 1 ? '' : 's'}'),
+                    label:
+                        '${session.turns.length} question${session.turns.length == 1 ? '' : 's'}',
+                  ),
                 ],
               ),
               if (report.summary.isNotEmpty) ...[
                 const SizedBox(height: 14),
-                Text(report.summary,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium),
+                Text(
+                  report.summary,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
               ],
             ],
           ),
@@ -359,32 +395,46 @@ class InterviewReportView extends StatelessWidget {
                   title: Text(
                     'Q${i + 1}${turn.isFollowUp ? ' · Follow-up' : ''}',
                     style: const TextStyle(
-                        fontSize: 12, color: AppColors.textGrey),
+                      fontSize: 12,
+                      color: AppColors.textGrey,
+                    ),
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(turn.question,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    child: Text(
+                      turn.question,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                   trailing: ScoreBadge(score: turn.score),
                   children: [
-                    Text(turn.question,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, height: 1.4)),
+                    Text(
+                      turn.question,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
                     const SizedBox(height: 10),
-                    const Text('Your answer',
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.textGrey)),
+                    const Text(
+                      'Your answer',
+                      style: TextStyle(fontSize: 12, color: AppColors.textGrey),
+                    ),
                     const SizedBox(height: 4),
-                    Text(turn.skipped ? 'Skipped' : turn.answer,
-                        style: TextStyle(
-                            height: 1.4,
-                            fontStyle: turn.skipped
-                                ? FontStyle.italic
-                                : FontStyle.normal)),
+                    Text(
+                      turn.skipped ? 'Skipped' : turn.answer,
+                      style: TextStyle(
+                        height: 1.4,
+                        fontStyle: turn.skipped
+                            ? FontStyle.italic
+                            : FontStyle.normal,
+                      ),
+                    ),
                     TurnFeedback(turn: turn),
                   ],
                 ),

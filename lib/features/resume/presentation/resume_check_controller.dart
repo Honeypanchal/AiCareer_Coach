@@ -16,7 +16,9 @@ class PickedResume {
 
   String get sizeLabel {
     final kb = bytes.length / 1024;
-    return kb < 1024 ? '${kb.round()} KB' : '${(kb / 1024).toStringAsFixed(1)} MB';
+    return kb < 1024
+        ? '${kb.round()} KB'
+        : '${(kb / 1024).toStringAsFixed(1)} MB';
   }
 }
 
@@ -74,7 +76,7 @@ class ResumeCheckNotifier extends StateNotifier<ResumeCheckState> {
   Future<void> Function()? _retry;
 
   ResumeCheckNotifier(this._repository, this._uid)
-      : super(const ResumeCheckState());
+    : super(const ResumeCheckState());
 
   static const maxBytes = 5 * 1024 * 1024;
 
@@ -89,7 +91,9 @@ class ResumeCheckNotifier extends StateNotifier<ResumeCheckState> {
     }
 
     state = error == null
-        ? state.copyWith(file: () => PickedResume(name: name, bytes: bytes))
+        ? state.copyWith(
+            file: () => PickedResume(name: name, bytes: bytes),
+          )
         : state.copyWith(fileError: error);
   }
 
@@ -114,7 +118,10 @@ class ResumeCheckNotifier extends StateNotifier<ResumeCheckState> {
         jobDescription: jobDescription,
       );
       if (!mounted) return;
-      state = state.copyWith(phase: ResumeCheckPhase.result, analysis: analysis);
+      state = state.copyWith(
+        phase: ResumeCheckPhase.result,
+        analysis: analysis,
+      );
 
       if (_uid == null) {
         state = state.copyWith(saved: false);
@@ -181,7 +188,11 @@ class ResumeCheckNotifier extends StateNotifier<ResumeCheckState> {
     state = const ResumeCheckState();
   }
 
-  void _fail(Object error, ResumeCheckPhase backTo, Future<void> Function() retry) {
+  void _fail(
+    Object error,
+    ResumeCheckPhase backTo,
+    Future<void> Function() retry,
+  ) {
     if (!mounted) return;
     _retry = retry;
     state = state.copyWith(
@@ -194,7 +205,9 @@ class ResumeCheckNotifier extends StateNotifier<ResumeCheckState> {
   Future<void> retry() async {
     final retry = _retry;
     final backTo = state.phaseBeforeError;
-    if (state.phase != ResumeCheckPhase.error || retry == null || backTo == null) {
+    if (state.phase != ResumeCheckPhase.error ||
+        retry == null ||
+        backTo == null) {
       return;
     }
     _retry = null;
@@ -211,10 +224,12 @@ class ResumeCheckNotifier extends StateNotifier<ResumeCheckState> {
   }
 }
 
-final resumeCheckProvider = StateNotifierProvider.autoDispose<
-    ResumeCheckNotifier, ResumeCheckState>((ref) {
-  return ResumeCheckNotifier(
-    ref.watch(resumeRepositoryProvider),
-    ref.read(currentUserUidProvider),
-  );
-});
+final resumeCheckProvider =
+    StateNotifierProvider.autoDispose<ResumeCheckNotifier, ResumeCheckState>((
+      ref,
+    ) {
+      return ResumeCheckNotifier(
+        ref.watch(resumeRepositoryProvider),
+        ref.read(currentUserUidProvider),
+      );
+    });

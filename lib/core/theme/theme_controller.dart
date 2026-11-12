@@ -7,10 +7,11 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPreferences must be overridden in main()');
 });
 
-final themeModeProvider =
-    StateNotifierProvider<ThemeModeController, ThemeMode>((ref) {
-  return ThemeModeController(ref.watch(sharedPreferencesProvider));
-});
+final themeModeProvider = StateNotifierProvider<ThemeModeController, ThemeMode>(
+  (ref) {
+    return ThemeModeController(ref.watch(sharedPreferencesProvider));
+  },
+);
 
 class ThemeModeController extends StateNotifier<ThemeMode> {
   ThemeModeController(this._prefs) : super(_read(_prefs));

@@ -11,6 +11,6 @@ import 'package:firebase_core/firebase_core.dart';
 const String appDatabaseId = 'default';
 
 FirebaseFirestore get appFirestore => FirebaseFirestore.instanceFor(
-      app: Firebase.app(),
-      databaseId: appDatabaseId,
-    );
+  app: Firebase.app(),
+  databaseId: appDatabaseId,
+);

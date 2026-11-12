@@ -35,8 +35,11 @@ class _FakeChatRepository extends Fake implements ChatRepository {
 }
 
 Future<ChatNotifier> _notifier(_FakeChatRepository repo) async {
-  final notifier = ChatNotifier(repo, 'user-1',
-      careerContext: () => 'Target role: Flutter Developer');
+  final notifier = ChatNotifier(
+    repo,
+    'user-1',
+    careerContext: () => 'Target role: Flutter Developer',
+  );
   await Future<void>.delayed(Duration.zero);
   return notifier;
 }
@@ -96,71 +99,91 @@ void main() {
 
       expect(contents.map((c) => c['role']), ['user', 'model']);
       expect(contents.first['parts'], [
-        {'text': 'Hello'}
+        {'text': 'Hello'},
       ]);
     });
   });
 
   group('buildSystemInstruction', () {
     test('includes the profile only when there is one', () {
-      expect(buildSystemInstruction('Target role: QA'), contains('Target role: QA'));
+      expect(
+        buildSystemInstruction('Target role: QA'),
+        contains('Target role: QA'),
+      );
       expect(buildSystemInstruction('  '), isNot(contains("user's profile")));
     });
   });
 
   group('parseGeminiReply', () {
-    Map<String, dynamic> candidate(List<Map<String, dynamic>>? parts,
-            [String finishReason = 'STOP']) =>
+    Map<String, dynamic> candidate(
+      List<Map<String, dynamic>>? parts, [
+      String finishReason = 'STOP',
+    ]) => {
+      'candidates': [
         {
-          'candidates': [
-            {
-              if (parts != null) 'content': {'parts': parts},
-              'finishReason': finishReason,
-            }
-          ]
-        };
+          if (parts != null) 'content': {'parts': parts},
+          'finishReason': finishReason,
+        },
+      ],
+    };
 
     test('joins text parts and skips thoughts and non-text parts', () {
-      final reply = parseGeminiReply(candidate([
-        {'text': 'thinking', 'thought': true},
-        {'text': 'Hello '},
-        {'inlineData': {}},
-        {'text': 'world'},
-      ]));
+      final reply = parseGeminiReply(
+        candidate([
+          {'text': 'thinking', 'thought': true},
+          {'text': 'Hello '},
+          {'inlineData': {}},
+          {'text': 'world'},
+        ]),
+      );
       expect(reply, 'Hello world');
     });
 
     test('blocked prompt is not retried', () {
       expect(
         () => parseGeminiReply({
-          'promptFeedback': {'blockReason': 'SAFETY'}
+          'promptFeedback': {'blockReason': 'SAFETY'},
         }),
-        throwsA(isA<GeminiException>()
-            .having((e) => e.retryable, 'retryable', isFalse)),
+        throwsA(
+          isA<GeminiException>().having(
+            (e) => e.retryable,
+            'retryable',
+            isFalse,
+          ),
+        ),
       );
     });
 
     test('blocked reply with no parts gives a clear message', () {
       expect(
         () => parseGeminiReply(candidate(null, 'SAFETY')),
-        throwsA(isA<GeminiException>()
-            .having((e) => e.retryable, 'retryable', isFalse)
-            .having((e) => e.message, 'message', contains('rephrasing'))),
+        throwsA(
+          isA<GeminiException>()
+              .having((e) => e.retryable, 'retryable', isFalse)
+              .having((e) => e.message, 'message', contains('rephrasing')),
+        ),
       );
     });
 
     test('empty reply can be retried', () {
       expect(
         () => parseGeminiReply({'candidates': []}),
-        throwsA(isA<GeminiException>()
-            .having((e) => e.retryable, 'retryable', isTrue)),
+        throwsA(
+          isA<GeminiException>().having(
+            (e) => e.retryable,
+            'retryable',
+            isTrue,
+          ),
+        ),
       );
     });
 
     test('cut off reply keeps the text and says so', () {
-      final reply = parseGeminiReply(candidate([
-        {'text': 'Partial answer'}
-      ], 'MAX_TOKENS'));
+      final reply = parseGeminiReply(
+        candidate([
+          {'text': 'Partial answer'},
+        ], 'MAX_TOKENS'),
+      );
       expect(reply, startsWith('Partial answer'));
       expect(reply, contains('cut off'));
     });

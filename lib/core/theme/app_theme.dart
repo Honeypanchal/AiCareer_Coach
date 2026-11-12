@@ -9,9 +9,9 @@ class AppColors {
   static const primaryDark = Color(0xFF4B44CC);
 
   // Background colors for dark mode
-  static const darkBg = Color(0xFF0F0F14);       // main background (very dark)
-  static const darkSurface = Color(0xFF1A1A24);  // cards, inputs
-  static const darkCard = Color(0xFF22223A);     // elevated cards
+  static const darkBg = Color(0xFF0F0F14); // main background (very dark)
+  static const darkSurface = Color(0xFF1A1A24); // cards, inputs
+  static const darkCard = Color(0xFF22223A); // elevated cards
 
   // Background colors for light mode
   static const lightBg = Color(0xFFF4F4FB);
@@ -26,6 +26,11 @@ class AppColors {
   // Status colors
   static const success = Color(0xFF4CAF82);
   static const error = Color(0xFFFF5C7D);
+  static const errorOnLight = Color(0xFFD7264B); // error text on white
+
+  /// Red for error text, readable in both light and dark mode.
+  static Color errorText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? error : errorOnLight;
   static const warning = Color(0xFFFFB347);
 }
 
@@ -40,15 +45,16 @@ class AppTheme {
       brightness: Brightness.dark,
 
       // Seed color generates the full color scheme automatically
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.dark,
-        surface: AppColors.darkSurface,
-      ).copyWith(
-        primary: AppColors.primary,
-        surface: AppColors.darkSurface,
-        error: AppColors.error,
-      ),
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            brightness: Brightness.dark,
+            surface: AppColors.darkSurface,
+          ).copyWith(
+            primary: AppColors.primary,
+            surface: AppColors.darkSurface,
+            error: AppColors.error,
+          ),
 
       scaffoldBackgroundColor: AppColors.darkBg,
 
@@ -100,7 +106,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none, // no border by default
@@ -149,10 +158,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
       ),
 
@@ -160,9 +166,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.darkCard,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         margin: const EdgeInsets.all(0),
       ),
 
@@ -196,15 +200,16 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.light,
-        surface: AppColors.lightSurface,
-      ).copyWith(
-        primary: AppColors.primary,
-        surface: AppColors.lightSurface,
-        error: AppColors.error,
-      ),
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            brightness: Brightness.light,
+            surface: AppColors.lightSurface,
+          ).copyWith(
+            primary: AppColors.primary,
+            surface: AppColors.lightSurface,
+            error: AppColors.error,
+          ),
 
       scaffoldBackgroundColor: AppColors.lightBg,
 
@@ -252,7 +257,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -299,23 +307,19 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
       ),
 
-      cardTheme:
-          CardThemeData( color: AppColors.lightSurface,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFFEEEEF9), width: 1),
-            ),
-            margin: const EdgeInsets.all(0),),
-
-
+      cardTheme: CardThemeData(
+        color: AppColors.lightSurface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFFEEEEF9), width: 1),
+        ),
+        margin: const EdgeInsets.all(0),
+      ),
 
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.lightBg,

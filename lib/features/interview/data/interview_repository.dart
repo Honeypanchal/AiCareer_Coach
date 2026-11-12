@@ -11,8 +11,7 @@ final interviewRepositoryProvider = Provider<InterviewRepository>((ref) {
 });
 
 /// Finished interviews of the signed-in user, newest first.
-final interviewHistoryProvider =
-    StreamProvider<List<InterviewSession>>((ref) {
+final interviewHistoryProvider = StreamProvider<List<InterviewSession>>((ref) {
   final uid = ref.watch(currentUserUidProvider);
   if (uid == null) return Stream.value(const []);
   return ref.watch(interviewRepositoryProvider).watchSessions(uid);
@@ -92,9 +91,9 @@ String _transcript(List<InterviewTurn> turns) {
     final t = turns[i];
     buffer
       ..writeln('Q${i + 1}${t.isFollowUp ? ' (follow-up)' : ''}: ${t.question}')
-      ..writeln(t.skipped
-          ? 'A${i + 1}: (skipped)'
-          : 'A${i + 1}: """${t.answer}"""')
+      ..writeln(
+        t.skipped ? 'A${i + 1}: (skipped)' : 'A${i + 1}: """${t.answer}"""',
+      )
       ..writeln('Score: ${t.score}/10')
       ..writeln();
   }
@@ -112,13 +111,13 @@ String buildEvaluationPrompt({
   final next = !wantNextQuestion
       ? 'This was the last question. Set nextQuestion to "" and nextIsFollowUp to false.'
       : isFollowUp || skipped
-          ? 'Then write nextQuestion: a NEW question on a different part of the topic. '
-              'If the candidate struggled, keep it at this level; if they did well, go a little deeper. '
-              'Set nextIsFollowUp to false.'
-          : 'Then write nextQuestion. If your score is below 5, it must be ONE follow-up question '
-              'that digs into the weakest part of this answer, simpler and more focused, '
-              'and nextIsFollowUp must be true. Otherwise ask a NEW question on a different '
-              'part of the topic, a little deeper if they did well, and set nextIsFollowUp to false.';
+      ? 'Then write nextQuestion: a NEW question on a different part of the topic. '
+            'If the candidate struggled, keep it at this level; if they did well, go a little deeper. '
+            'Set nextIsFollowUp to false.'
+      : 'Then write nextQuestion. If your score is below 5, it must be ONE follow-up question '
+            'that digs into the weakest part of this answer, simpler and more focused, '
+            'and nextIsFollowUp must be true. Otherwise ask a NEW question on a different '
+            'part of the topic, a little deeper if they did well, and set nextIsFollowUp to false.';
 
   return '''${previousTurns.isEmpty ? '' : 'Interview so far:\n${_transcript(previousTurns)}'}Current question${isFollowUp ? ' (follow-up)' : ''}: $question
 ${skipped ? 'The candidate skipped this question.' : 'Candidate\'s answer:\n"""$answer"""'}
@@ -149,11 +148,11 @@ const _evaluationSchema = {
     'score': {'type': 'integer', 'minimum': 0, 'maximum': 10},
     'good': {
       'type': 'array',
-      'items': {'type': 'string'}
+      'items': {'type': 'string'},
     },
     'missing': {
       'type': 'array',
-      'items': {'type': 'string'}
+      'items': {'type': 'string'},
     },
     'modelAnswer': {'type': 'string'},
     'nextQuestion': {'type': 'string'},
@@ -165,7 +164,7 @@ const _evaluationSchema = {
     'missing',
     'modelAnswer',
     'nextQuestion',
-    'nextIsFollowUp'
+    'nextIsFollowUp',
   ],
 };
 
@@ -183,15 +182,15 @@ const _reportSchema = {
     'summary': {'type': 'string'},
     'strongAreas': {
       'type': 'array',
-      'items': {'type': 'string'}
+      'items': {'type': 'string'},
     },
     'weakAreas': {
       'type': 'array',
-      'items': {'type': 'string'}
+      'items': {'type': 'string'},
     },
     'practiceNext': {
       'type': 'array',
-      'items': {'type': 'string'}
+      'items': {'type': 'string'},
     },
   },
   'required': ['summary', 'strongAreas', 'weakAreas', 'practiceNext'],
@@ -206,8 +205,9 @@ AnswerEvaluation parseEvaluation(
   final next = (json['nextQuestion'] as String?)?.trim() ?? '';
   if (wantNextQuestion && next.isEmpty) {
     throw const GeminiException(
-        'The AI did not send the next question. Please try again.',
-        retryable: true);
+      'The AI did not send the next question. Please try again.',
+      retryable: true,
+    );
   }
 
   return AnswerEvaluation(
@@ -228,6 +228,11 @@ List<String> _strings(dynamic value, int max) {
       .toList();
 }
 
+// Thinking makes Gemini about twice as slow, so the interview keeps
+// it off or short to stay responsive.
+const _noThinking = 0;
+const _shortThinking = 512;
+
 class InterviewRepository {
   final GeminiClient _gemini;
   FirebaseFirestore get _firestore => appFirestore;
@@ -240,10 +245,13 @@ class InterviewRepository {
       systemInstruction: buildInterviewerInstruction(config),
       schema: _questionSchema,
       temperature: 0.9,
+      thinkingBudget: _noThinking,
     );
     final question = (json['question'] as String?)?.trim() ?? '';
     if (question.isEmpty) {
-      throw const GeminiException('Could not get a question. Please try again.');
+      throw const GeminiException(
+        'Could not get a question. Please try again.',
+      );
     }
     return question;
   }
@@ -271,9 +279,15 @@ class InterviewRepository {
       systemInstruction: buildInterviewerInstruction(config),
       schema: _evaluationSchema,
       temperature: 0.4,
+      // A skipped question only needs a model answer and the next question.
+      // A real answer gets a little thinking time so the score is fair.
+      thinkingBudget: skipped ? _noThinking : _shortThinking,
     );
-    return parseEvaluation(json,
-        skipped: skipped, wantNextQuestion: wantNextQuestion);
+    return parseEvaluation(
+      json,
+      skipped: skipped,
+      wantNextQuestion: wantNextQuestion,
+    );
   }
 
   Future<ReportNotes> buildReport({
@@ -285,6 +299,8 @@ class InterviewRepository {
       systemInstruction: buildInterviewerInstruction(config),
       schema: _reportSchema,
       temperature: 0.3,
+      // The scores are already known; the report only summarises them.
+      thinkingBudget: _noThinking,
     );
     return ReportNotes(
       summary: (json['summary'] as String?)?.trim() ?? '',
@@ -309,9 +325,11 @@ class InterviewRepository {
         .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => InterviewSession.fromMap(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snap) => snap.docs
+              .map((doc) => InterviewSession.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Future<void> deleteSession(String uid, String id) {

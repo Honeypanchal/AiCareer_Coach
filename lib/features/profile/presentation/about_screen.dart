@@ -24,14 +24,19 @@ class AboutScreen extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(Icons.psychology_rounded,
-                  color: Colors.white, size: 38),
+              child: const Icon(
+                Icons.psychology_rounded,
+                color: Colors.white,
+                size: 38,
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          Text('AI Career Coach',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.headlineMedium),
+          Text(
+            'AI Career Coach',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 4),
           const Text(
             'Version 1.0.0',
@@ -47,8 +52,12 @@ class AboutScreen extends StatelessWidget {
           Text('What’s inside', style: theme.textTheme.titleLarge),
           const SizedBox(height: 12),
           const _Bullet('AI Chat — career coaching with your profile context'),
-          const _Bullet('Resume Check — score, prioritised fixes, missing keywords and an improved CV PDF'),
-          const _Bullet('Mock Interview — adaptive questions, feedback on every answer and a final report'),
+          const _Bullet(
+            'Resume Check — score, prioritised fixes, missing keywords and an improved CV PDF',
+          ),
+          const _Bullet(
+            'Mock Interview — adaptive questions, feedback on every answer and a final report',
+          ),
           const _Bullet('Profile — role, skills, theme, account'),
         ],
       ),
@@ -72,7 +81,9 @@ class _Bullet extends StatelessWidget {
             child: Icon(Icons.circle, size: 8, color: AppColors.primary),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+          ),
         ],
       ),
     );

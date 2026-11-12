@@ -49,11 +49,14 @@ class ResumeReportView extends StatelessWidget {
                       strokeCap: StrokeCap.round,
                     ),
                     Center(
-                      child: Text('$score%',
-                          style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: color)),
+                      child: Text(
+                        '$score%',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -70,15 +73,18 @@ class ResumeReportView extends StatelessWidget {
                     Tag(label: analysis.targetRole),
                   if (analysis.usedJobDescription)
                     const Tag(
-                        label: 'Matched to job description',
-                        color: AppColors.success),
+                      label: 'Matched to job description',
+                      color: AppColors.success,
+                    ),
                 ],
               ),
               if (analysis.summary.isNotEmpty) ...[
                 const SizedBox(height: 14),
-                Text(analysis.summary,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium),
+                Text(
+                  analysis.summary,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
               ],
             ],
           ),
@@ -164,13 +170,22 @@ class _CategoryRow extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(category.label,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14)),
+                child: Text(
+                  category.label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
               ),
-              Text('${category.score}/10',
-                  style: TextStyle(
-                      color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(
+                '${category.score}/10',
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 6),
@@ -185,9 +200,14 @@ class _CategoryRow extends StatelessWidget {
           ),
           if (category.comment.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(category.comment,
-                style: const TextStyle(
-                    color: AppColors.textGrey, fontSize: 12.5, height: 1.4)),
+            Text(
+              category.comment,
+              style: const TextStyle(
+                color: AppColors.textGrey,
+                fontSize: 12.5,
+                height: 1.4,
+              ),
+            ),
           ],
         ],
       ),
@@ -207,30 +227,44 @@ class _ImprovementCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Tag(
+          Row(
+            children: [
+              Tag(
                 label: '${item.priority.label} priority',
-                color: priorityColor(item.priority)),
-            const SizedBox(width: 8),
-            if (item.section.isNotEmpty)
-              Expanded(
-                child: Text(item.section,
+                color: priorityColor(item.priority),
+              ),
+              const SizedBox(width: 8),
+              if (item.section.isNotEmpty)
+                Expanded(
+                  child: Text(
+                    item.section,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        color: AppColors.textGrey, fontSize: 12.5)),
-              ),
-          ]),
+                      color: AppColors.textGrey,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                ),
+            ],
+          ),
           if (item.issue.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text(item.issue,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14, height: 1.4)),
+            Text(
+              item.issue,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
           ],
           if (item.suggestion.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(item.suggestion,
-                style: const TextStyle(fontSize: 13.5, height: 1.4)),
+            Text(
+              item.suggestion,
+              style: const TextStyle(fontSize: 13.5, height: 1.4),
+            ),
           ],
           if (item.before.isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -283,12 +317,19 @@ class _Example extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: TextStyle(
-                  color: color, fontSize: 11.5, fontWeight: FontWeight.w700)),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 4),
-          SelectableText(text,
-              style: const TextStyle(fontSize: 13, height: 1.4)),
+          SelectableText(
+            text,
+            style: const TextStyle(fontSize: 13, height: 1.4),
+          ),
         ],
       ),
     );

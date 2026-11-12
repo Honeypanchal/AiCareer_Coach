@@ -42,8 +42,11 @@ class _InterviewSessionScreenState
   void _scrollToTop() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
-        _scroll.animateTo(0,
-            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+        _scroll.animateTo(
+          0,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -51,16 +54,19 @@ class _InterviewSessionScreenState
   Future<bool> _confirmLeave() async {
     final state = ref.read(interviewSessionProvider(widget.config));
     // While the AI is working, a report can't be started at the same time.
-    final canReport = state.turns.isNotEmpty &&
+    final canReport =
+        state.turns.isNotEmpty &&
         state.phase != InterviewPhase.evaluating &&
         state.phase != InterviewPhase.finishing;
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('End this interview?'),
-        content: Text(!canReport
-            ? 'If you leave now, this interview will not be saved.'
-            : 'You can get your report for the ${state.turns.length} answered question${state.turns.length == 1 ? '' : 's'}, or leave without saving.'),
+        content: Text(
+          !canReport
+              ? 'If you leave now, this interview will not be saved.'
+              : 'You can get your report for the ${state.turns.length} answered question${state.turns.length == 1 ? '' : 's'}, or leave without saving.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, 'stay'),
@@ -68,8 +74,10 @@ class _InterviewSessionScreenState
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, 'leave'),
-            child: const Text('Leave',
-                style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Leave',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
           if (canReport)
             TextButton(
@@ -112,7 +120,8 @@ class _InterviewSessionScreenState
       }
     });
 
-    final showProgress = state.phase != InterviewPhase.finished &&
+    final showProgress =
+        state.phase != InterviewPhase.finished &&
         state.phase != InterviewPhase.finishing;
 
     return PopScope(
@@ -123,22 +132,27 @@ class _InterviewSessionScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(state.phase == InterviewPhase.finished
-                ? Icons.arrow_back_ios_new_rounded
-                : Icons.close_rounded),
+            icon: Icon(
+              state.phase == InterviewPhase.finished
+                  ? Icons.arrow_back_ios_new_rounded
+                  : Icons.close_rounded,
+            ),
             onPressed: _handleClose,
           ),
           title: Column(
             children: [
-              Text(config.topic,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600)),
+              Text(
+                config.topic,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               Text(
                 showProgress
                     ? 'Question ${state.questionNumber} of ${config.questionCount} · ${config.difficulty.label}'
                     : 'Interview report',
-                style:
-                    const TextStyle(fontSize: 12, color: AppColors.textGrey),
+                style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
               ),
             ],
           ),
@@ -219,31 +233,35 @@ class _InterviewSessionScreenState
               if (evaluating) ...[
                 const SizedBox(height: 24),
                 const _Loading(
-                    message: 'Reviewing your answer…', compact: true),
+                  message: 'Reviewing your answer…',
+                  compact: true,
+                ),
               ],
             ],
           ),
         ),
-        _BottomBar(children: [
-          TextButton(
-            onPressed: evaluating
-                ? null
-                : () => _notifier.submitAnswer('', skipped: true),
-            child: const Text('Skip'),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: canSubmit
-                  ? () {
-                      FocusScope.of(context).unfocus();
-                      _notifier.submitAnswer(_answer.text);
-                    }
-                  : null,
-              child: const Text('Submit answer'),
+        _BottomBar(
+          children: [
+            TextButton(
+              onPressed: evaluating
+                  ? null
+                  : () => _notifier.submitAnswer('', skipped: true),
+              child: const Text('Skip'),
             ),
-          ),
-        ]),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: canSubmit
+                    ? () {
+                        FocusScope.of(context).unfocus();
+                        _notifier.submitAnswer(_answer.text);
+                      }
+                    : null,
+                child: const Text('Submit answer'),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -260,7 +278,10 @@ class _InterviewSessionScreenState
             controller: _scroll,
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
             children: [
-              _QuestionCard(question: turn.question, isFollowUp: turn.isFollowUp),
+              _QuestionCard(
+                question: turn.question,
+                isFollowUp: turn.isFollowUp,
+              ),
               const SizedBox(height: 12),
               InterviewCard(
                 child: Column(
@@ -270,7 +291,9 @@ class _InterviewSessionScreenState
                       children: [
                         Expanded(
                           child: Text(
-                            turn.skipped ? 'Skipped' : scoreLabel(turn.score * 10),
+                            turn.skipped
+                                ? 'Skipped'
+                                : scoreLabel(turn.score * 10),
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ),
@@ -291,21 +314,23 @@ class _InterviewSessionScreenState
             ],
           ),
         ),
-        _BottomBar(children: [
-          if (hasNext) ...[
-            TextButton(
-              onPressed: _notifier.finish,
-              child: const Text('End now'),
+        _BottomBar(
+          children: [
+            if (hasNext) ...[
+              TextButton(
+                onPressed: _notifier.finish,
+                child: const Text('End now'),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _notifier.next,
+                child: Text(hasNext ? 'Next question' : 'See my report'),
+              ),
             ),
-            const SizedBox(width: 12),
           ],
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _notifier.next,
-              child: Text(hasNext ? 'Next question' : 'See my report'),
-            ),
-          ),
-        ]),
+        ),
       ],
     );
   }
@@ -323,16 +348,18 @@ class _InterviewSessionScreenState
               if (state.saved == false) ...[
                 const InterviewCard(
                   borderColor: AppColors.warning,
-                  child: Row(children: [
-                    Icon(Icons.cloud_off_rounded, color: AppColors.warning),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'This report could not be saved to your history. Check your internet connection.',
-                        style: TextStyle(fontSize: 13),
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_off_rounded, color: AppColors.warning),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'This report could not be saved to your history. Check your internet connection.',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -340,35 +367,38 @@ class _InterviewSessionScreenState
             ],
           ),
         ),
-        _BottomBar(children: [
-          Expanded(
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 56),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: () => context.pushReplacement(
-                AppRoutes.interviewSession,
-                extra: InterviewConfig(
-                  topic: widget.config.topic,
-                  difficulty: widget.config.difficulty,
-                  questionCount: widget.config.questionCount,
-                  targetRole: widget.config.targetRole,
-                  experienceLevel: widget.config.experienceLevel,
+        _BottomBar(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
+                onPressed: () => context.pushReplacement(
+                  AppRoutes.interviewSession,
+                  extra: InterviewConfig(
+                    topic: widget.config.topic,
+                    difficulty: widget.config.difficulty,
+                    questionCount: widget.config.questionCount,
+                    targetRole: widget.config.targetRole,
+                    experienceLevel: widget.config.experienceLevel,
+                  ),
+                ),
+                child: const Text('Practice again'),
               ),
-              child: const Text('Practice again'),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => context.pop(),
-              child: const Text('Done'),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => context.pop(),
+                child: const Text('Done'),
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ],
     );
   }
@@ -387,24 +417,35 @@ class _QuestionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            const Icon(Icons.record_voice_over_outlined,
-                size: 18, color: AppColors.primary),
-            const SizedBox(width: 8),
-            const Text('Interviewer',
+          Row(
+            children: [
+              const Icon(
+                Icons.record_voice_over_outlined,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Interviewer',
                 style: TextStyle(
-                    color: AppColors.textGrey,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
-            const Spacer(),
-            if (isFollowUp)
-              const Tag(label: 'Follow-up', color: AppColors.warning),
-          ]),
+                  color: AppColors.textGrey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              if (isFollowUp)
+                const Tag(label: 'Follow-up', color: AppColors.warning),
+            ],
+          ),
           const SizedBox(height: 12),
           SelectableText(
             question,
             style: const TextStyle(
-                fontSize: 17, fontWeight: FontWeight.w600, height: 1.4),
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+            ),
           ),
         ],
       ),
@@ -479,15 +520,25 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 44, color: AppColors.error),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 44,
+              color: AppColors.error,
+            ),
             const SizedBox(height: 14),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.errorText(context),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(height: 6),
-            const Text('Your answers so far are kept.',
-                style: TextStyle(color: AppColors.textGrey, fontSize: 13)),
+            const Text(
+              'Your answers so far are kept.',
+              style: TextStyle(color: AppColors.textGrey, fontSize: 13),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(onPressed: onRetry, child: const Text('Try again')),
             const SizedBox(height: 8),

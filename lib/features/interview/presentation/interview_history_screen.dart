@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../chat/data/chat_repository.dart';
 import '../data/interview_models.dart';
 import '../data/interview_repository.dart';
@@ -25,8 +26,10 @@ class InterviewHistoryScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete',
-                style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -52,7 +55,8 @@ class InterviewHistoryScreen extends ConsumerWidget {
             return const _Message(
               icon: Icons.mic_none_rounded,
               title: 'No interviews yet',
-              subtitle: 'Finished mock interviews and their reports show up here.',
+              subtitle:
+                  'Finished mock interviews and their reports show up here.',
             );
           }
           return ListView.separated(
@@ -61,8 +65,10 @@ class InterviewHistoryScreen extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
               if (i == 0) {
-                return const Text('Swipe left on an interview to delete it.',
-                    style: TextStyle(color: AppColors.textGrey, fontSize: 12.5));
+                return const Text(
+                  'Swipe left on an interview to delete it.',
+                  style: TextStyle(color: AppColors.textGrey, fontSize: 12.5),
+                );
               }
               final session = sessions[i - 1];
               return Dismissible(
@@ -76,13 +82,13 @@ class InterviewHistoryScreen extends ConsumerWidget {
                       .read(interviewRepositoryProvider)
                       .deleteSession(uid, session.id)
                       .catchError((Object _) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Could not delete. Please try again.')),
-                      );
-                    }
-                  });
+                        if (context.mounted) {
+                          showErrorSnackBar(
+                            context,
+                            'Could not delete. Please try again.',
+                          );
+                        }
+                      });
                 },
                 background: Container(
                   alignment: Alignment.centerRight,
@@ -91,8 +97,10 @@ class InterviewHistoryScreen extends ConsumerWidget {
                     color: AppColors.error.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.delete_outline_rounded,
-                      color: AppColors.error),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.error,
+                  ),
                 ),
                 child: InterviewSessionTile(session: session),
               );
@@ -128,25 +136,36 @@ class InterviewSessionTile extends StatelessWidget {
                 color: color.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Text('$score%',
-                  style: TextStyle(
-                      color: color, fontWeight: FontWeight.bold, fontSize: 15)),
+              child: Text(
+                '$score%',
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(session.topic,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15)),
+                  Text(
+                    session.topic,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
                   const SizedBox(height: 3),
                   Text(
                     '${session.difficulty.label} · ${session.turns.length} questions · ${formatShortDate(session.createdAt)}',
                     style: const TextStyle(
-                        color: AppColors.textGrey, fontSize: 12.5),
+                      color: AppColors.textGrey,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ),
@@ -178,13 +197,19 @@ class _Message extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: AppColors.textGrey.withValues(alpha: 0.6)),
+            Icon(
+              icon,
+              size: 48,
+              color: AppColors.textGrey.withValues(alpha: 0.6),
+            ),
             const SizedBox(height: 16),
             Text(title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text(subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.textGrey, height: 1.4)),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textGrey, height: 1.4),
+            ),
           ],
         ),
       ),

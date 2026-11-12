@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_controller.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/profile_avatar.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/profile_repository.dart';
@@ -44,29 +45,35 @@ class ProfileScreen extends ConsumerWidget {
               ProfileAvatar(name: name, photoUrl: photoUrl, radius: 44),
               const SizedBox(height: 16),
               profileAsync.when(
-                loading: () => Column(children: [
-                  _ShimmerBar(width: 140, height: 24, isDark: isDark),
-                  const SizedBox(height: 8),
-                  _ShimmerBar(width: 200, height: 16, isDark: isDark),
-                ]),
-                error: (_, __) => Column(children: [
-                  Text(name, style: theme.textTheme.headlineMedium),
-                  const SizedBox(height: 4),
-                  Text(email, style: theme.textTheme.bodyMedium),
-                ]),
-                data: (_) => Column(children: [
-                  Text(name, style: theme.textTheme.headlineMedium),
-                  const SizedBox(height: 4),
-                  Text(email, style: theme.textTheme.bodyMedium),
-                  if (headline.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      headline,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                loading: () => Column(
+                  children: [
+                    _ShimmerBar(width: 140, height: 24, isDark: isDark),
+                    const SizedBox(height: 8),
+                    _ShimmerBar(width: 200, height: 16, isDark: isDark),
                   ],
-                ]),
+                ),
+                error: (_, __) => Column(
+                  children: [
+                    Text(name, style: theme.textTheme.headlineMedium),
+                    const SizedBox(height: 4),
+                    Text(email, style: theme.textTheme.bodyMedium),
+                  ],
+                ),
+                data: (_) => Column(
+                  children: [
+                    Text(name, style: theme.textTheme.headlineMedium),
+                    const SizedBox(height: 4),
+                    Text(email, style: theme.textTheme.bodyMedium),
+                    if (headline.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        headline,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ],
+                ),
               ),
               if (role.isNotEmpty || experience.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -89,7 +96,9 @@ class ProfileScreen extends ConsumerWidget {
                   alignment: WrapAlignment.center,
                   children: skills
                       .take(8)
-                      .map((s) => _InfoChip(label: s, isDark: isDark, small: true))
+                      .map(
+                        (s) => _InfoChip(label: s, isDark: isDark, small: true),
+                      )
                       .toList(),
                 ),
               ],
@@ -175,9 +184,7 @@ class ProfileScreen extends ConsumerWidget {
               TextField(
                 controller: passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                ),
+                decoration: const InputDecoration(hintText: 'Password'),
               ),
             ],
           ),
@@ -188,8 +195,10 @@ class ProfileScreen extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete',
-                  style: TextStyle(color: AppColors.error)),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
             ),
           ],
         );
@@ -202,20 +211,16 @@ class ProfileScreen extends ConsumerWidget {
     }
 
     try {
-      await ref.read(profileRepositoryProvider).deleteAccount(
-            password: passwordController.text,
-          );
+      await ref
+          .read(profileRepositoryProvider)
+          .deleteAccount(password: passwordController.text);
     } on FirebaseAuthException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getAuthErrorMessage(e.code))),
-        );
+        showErrorSnackBar(context, getAuthErrorMessage(e.code));
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not delete account.')),
-        );
+        showErrorSnackBar(context, 'Could not delete account.');
       }
     } finally {
       passwordController.dispose();
@@ -311,17 +316,27 @@ class _Tile extends StatelessWidget {
       ),
       child: ListTile(
         leading: Icon(icon, color: color ?? AppColors.textGrey, size: 22),
-        title: Text(label,
-            style: TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w500, color: color)),
+        title: Text(
+          label,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: color,
+          ),
+        ),
         subtitle: subtitle == null
             ? null
-            : Text(subtitle!,
-                style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
+            : Text(
+                subtitle!,
+                style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
+              ),
         trailing: isDestructive
             ? null
-            : const Icon(Icons.chevron_right_rounded,
-                color: AppColors.textGrey, size: 20),
+            : const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textGrey,
+                size: 20,
+              ),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),

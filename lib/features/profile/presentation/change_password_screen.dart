@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/app_snackbar.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/profile_repository.dart';
 
@@ -35,25 +36,21 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      await ref.read(profileRepositoryProvider).changePassword(
+      await ref
+          .read(profileRepositoryProvider)
+          .changePassword(
             currentPassword: _current.text,
             newPassword: _next.text,
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated')),
-      );
+      showSuccessSnackBar(context, 'Password updated');
       context.pop();
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(getAuthErrorMessage(e.code))),
-      );
+      showErrorSnackBar(context, getAuthErrorMessage(e.code));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not update password.')),
-      );
+      showErrorSnackBar(context, 'Could not update password.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -75,11 +72,12 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 hintText: 'Current password',
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
                 suffixIcon: IconButton(
-                  icon: Icon(_hideCurrent
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined),
-                  onPressed: () =>
-                      setState(() => _hideCurrent = !_hideCurrent),
+                  icon: Icon(
+                    _hideCurrent
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () => setState(() => _hideCurrent = !_hideCurrent),
                 ),
               ),
               validator: (value) =>
@@ -93,9 +91,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 hintText: 'New password',
                 prefixIcon: const Icon(Icons.lock_reset_rounded),
                 suffixIcon: IconButton(
-                  icon: Icon(_hideNext
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined),
+                  icon: Icon(
+                    _hideNext
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
                   onPressed: () => setState(() => _hideNext = !_hideNext),
                 ),
               ),
@@ -127,7 +127,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       height: 22,
                       width: 22,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Text('Update password'),
             ),

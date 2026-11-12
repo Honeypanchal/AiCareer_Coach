@@ -67,9 +67,12 @@ class AuthRepository {
           'createdAt': FieldValue.serverTimestamp(),
           'lastLoginAt': FieldValue.serverTimestamp(),
         })
-        .timeout(const Duration(seconds: 10), onTimeout: () {
-          debugPrint('Profile write still syncing for uid=$uid');
-        });
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            debugPrint('Profile write still syncing for uid=$uid');
+          },
+        );
 
     debugPrint('✅ Firestore write done for uid=$uid');
     return uid;

@@ -12,16 +12,36 @@ class ResumeCategory {
   const ResumeCategory(this.key, this.label, this.weight, this.rubric);
 
   static const all = [
-    ResumeCategory('formatting', 'ATS & formatting', 20,
-        'Standard section headings, simple single-column layout, consistent dates and styling, readable length (1 page for under ~5 years experience, max 2), no tables/images/graphics that ATS parsers miss.'),
-    ResumeCategory('impact', 'Impact & achievements', 25,
-        'Bullets start with strong action verbs and show results, scope or numbers instead of listing duties.'),
-    ResumeCategory('relevance', 'Role match & keywords', 25,
-        'Skills, projects and experience match the target role (and job description if given); important role keywords are present.'),
-    ResumeCategory('clarity', 'Clarity & writing', 15,
-        'Concise, specific wording, no spelling or grammar mistakes, no filler or vague claims.'),
-    ResumeCategory('completeness', 'Completeness', 15,
-        'Has contact details (email, phone, location, LinkedIn/GitHub/portfolio where relevant), summary, skills, experience or projects, and education.'),
+    ResumeCategory(
+      'formatting',
+      'ATS & formatting',
+      20,
+      'Standard section headings, simple single-column layout, consistent dates and styling, readable length (1 page for under ~5 years experience, max 2), no tables/images/graphics that ATS parsers miss.',
+    ),
+    ResumeCategory(
+      'impact',
+      'Impact & achievements',
+      25,
+      'Bullets start with strong action verbs and show results, scope or numbers instead of listing duties.',
+    ),
+    ResumeCategory(
+      'relevance',
+      'Role match & keywords',
+      25,
+      'Skills, projects and experience match the target role (and job description if given); important role keywords are present.',
+    ),
+    ResumeCategory(
+      'clarity',
+      'Clarity & writing',
+      15,
+      'Concise, specific wording, no spelling or grammar mistakes, no filler or vague claims.',
+    ),
+    ResumeCategory(
+      'completeness',
+      'Completeness',
+      15,
+      'Has contact details (email, phone, location, LinkedIn/GitHub/portfolio where relevant), summary, skills, experience or projects, and education.',
+    ),
   ];
 
   static ResumeCategory? byKey(String key) {
@@ -45,14 +65,17 @@ class CategoryScore {
 
   String get label => ResumeCategory.byKey(key)?.label ?? key;
 
-  Map<String, dynamic> toMap() =>
-      {'key': key, 'score': score, 'comment': comment};
+  Map<String, dynamic> toMap() => {
+    'key': key,
+    'score': score,
+    'comment': comment,
+  };
 
   factory CategoryScore.fromMap(Map<String, dynamic> map) => CategoryScore(
-        key: map['key'] as String? ?? '',
-        score: (map['score'] as num?)?.round().clamp(0, 10) ?? 0,
-        comment: (map['comment'] as String?)?.trim() ?? '',
-      );
+    key: map['key'] as String? ?? '',
+    score: (map['score'] as num?)?.round().clamp(0, 10) ?? 0,
+    comment: (map['comment'] as String?)?.trim() ?? '',
+  );
 }
 
 enum ImprovementPriority {
@@ -88,13 +111,13 @@ class ResumeImprovement {
   });
 
   Map<String, dynamic> toMap() => {
-        'priority': priority.name,
-        'section': section,
-        'issue': issue,
-        'suggestion': suggestion,
-        'before': before,
-        'after': after,
-      };
+    'priority': priority.name,
+    'section': section,
+    'issue': issue,
+    'suggestion': suggestion,
+    'before': before,
+    'after': after,
+  };
 
   factory ResumeImprovement.fromMap(Map<String, dynamic> map) =>
       ResumeImprovement(
@@ -173,18 +196,18 @@ class ResumeAnalysis {
   }
 
   Map<String, dynamic> toMap() => {
-        'fileName': fileName,
-        'targetRole': targetRole,
-        'usedJobDescription': usedJobDescription,
-        'createdAt': Timestamp.fromDate(createdAt),
-        'overallScore': overallScore,
-        'summary': summary,
-        'categories': categories.map((c) => c.toMap()).toList(),
-        'strengths': strengths,
-        'improvements': improvements.map((i) => i.toMap()).toList(),
-        'missingKeywords': missingKeywords,
-        if (improvedResume != null) 'improvedResume': improvedResume!.toMap(),
-      };
+    'fileName': fileName,
+    'targetRole': targetRole,
+    'usedJobDescription': usedJobDescription,
+    'createdAt': Timestamp.fromDate(createdAt),
+    'overallScore': overallScore,
+    'summary': summary,
+    'categories': categories.map((c) => c.toMap()).toList(),
+    'strengths': strengths,
+    'improvements': improvements.map((i) => i.toMap()).toList(),
+    'missingKeywords': missingKeywords,
+    if (improvedResume != null) 'improvedResume': improvedResume!.toMap(),
+  };
 
   factory ResumeAnalysis.fromMap(String id, Map<String, dynamic> map) {
     final created = map['createdAt'];
@@ -198,8 +221,9 @@ class ResumeAnalysis {
       summary: map['summary'] as String? ?? '',
       categories: _maps(map['categories']).map(CategoryScore.fromMap).toList(),
       strengths: stringList(map['strengths']),
-      improvements:
-          _maps(map['improvements']).map(ResumeImprovement.fromMap).toList(),
+      improvements: _maps(
+        map['improvements'],
+      ).map(ResumeImprovement.fromMap).toList(),
       missingKeywords: stringList(map['missingKeywords']),
       improvedResume: improved is Map
           ? ImprovedResume.fromMap(Map<String, dynamic>.from(improved))
@@ -226,20 +250,20 @@ class ResumeEntry {
   });
 
   Map<String, dynamic> toMap() => {
-        'title': title,
-        'organization': organization,
-        'location': location,
-        'period': period,
-        'bullets': bullets,
-      };
+    'title': title,
+    'organization': organization,
+    'location': location,
+    'period': period,
+    'bullets': bullets,
+  };
 
   factory ResumeEntry.fromMap(Map<String, dynamic> map) => ResumeEntry(
-        title: (map['title'] as String?)?.trim() ?? '',
-        organization: (map['organization'] as String?)?.trim() ?? '',
-        location: (map['location'] as String?)?.trim() ?? '',
-        period: (map['period'] as String?)?.trim() ?? '',
-        bullets: stringList(map['bullets']),
-      );
+    title: (map['title'] as String?)?.trim() ?? '',
+    organization: (map['organization'] as String?)?.trim() ?? '',
+    location: (map['location'] as String?)?.trim() ?? '',
+    period: (map['period'] as String?)?.trim() ?? '',
+    bullets: stringList(map['bullets']),
+  );
 }
 
 class ResumeListSection {
@@ -283,36 +307,35 @@ class ImprovedResume {
   });
 
   Map<String, dynamic> toMap() => {
-        'name': name,
-        'headline': headline,
-        'contact': contact,
-        'summary': summary,
-        'skills': skills.map((s) => s.toMap()).toList(),
-        'experience': experience.map((e) => e.toMap()).toList(),
-        'projects': projects.map((e) => e.toMap()).toList(),
-        'education': education.map((e) => e.toMap()).toList(),
-        'extraSections': extraSections.map((s) => s.toMap()).toList(),
-        'tips': tips,
-      };
+    'name': name,
+    'headline': headline,
+    'contact': contact,
+    'summary': summary,
+    'skills': skills.map((s) => s.toMap()).toList(),
+    'experience': experience.map((e) => e.toMap()).toList(),
+    'projects': projects.map((e) => e.toMap()).toList(),
+    'education': education.map((e) => e.toMap()).toList(),
+    'extraSections': extraSections.map((s) => s.toMap()).toList(),
+    'tips': tips,
+  };
 
   factory ImprovedResume.fromMap(Map<String, dynamic> map) => ImprovedResume(
-        name: (map['name'] as String?)?.trim() ?? '',
-        headline: (map['headline'] as String?)?.trim() ?? '',
-        contact: stringList(map['contact']),
-        summary: (map['summary'] as String?)?.trim() ?? '',
-        skills: _maps(map['skills'])
-            .map(ResumeListSection.fromMap)
-            .where((s) => s.items.isNotEmpty)
-            .toList(),
-        experience: _entries(map['experience']),
-        projects: _entries(map['projects']),
-        education: _entries(map['education']),
-        extraSections: _maps(map['extraSections'])
-            .map(ResumeListSection.fromMap)
-            .where((s) => s.title.isNotEmpty && s.items.isNotEmpty)
-            .toList(),
-        tips: stringList(map['tips']),
-      );
+    name: (map['name'] as String?)?.trim() ?? '',
+    headline: (map['headline'] as String?)?.trim() ?? '',
+    contact: stringList(map['contact']),
+    summary: (map['summary'] as String?)?.trim() ?? '',
+    skills: _maps(
+      map['skills'],
+    ).map(ResumeListSection.fromMap).where((s) => s.items.isNotEmpty).toList(),
+    experience: _entries(map['experience']),
+    projects: _entries(map['projects']),
+    education: _entries(map['education']),
+    extraSections: _maps(map['extraSections'])
+        .map(ResumeListSection.fromMap)
+        .where((s) => s.title.isNotEmpty && s.items.isNotEmpty)
+        .toList(),
+    tips: stringList(map['tips']),
+  );
 
   static List<ResumeEntry> _entries(dynamic value) => _maps(value)
       .map(ResumeEntry.fromMap)

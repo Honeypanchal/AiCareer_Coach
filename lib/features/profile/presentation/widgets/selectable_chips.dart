@@ -36,9 +36,7 @@ class SelectableChips extends StatelessWidget {
             fontSize: 13,
           ),
           side: BorderSide(
-            color: isOn
-                ? AppColors.primary
-                : Theme.of(context).dividerColor,
+            color: isOn ? AppColors.primary : Theme.of(context).dividerColor,
           ),
           backgroundColor: Colors.transparent,
         );

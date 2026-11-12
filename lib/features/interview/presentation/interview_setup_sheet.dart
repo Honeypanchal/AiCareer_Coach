@@ -46,7 +46,8 @@ class _InterviewSetupSheetState extends ConsumerState<_InterviewSetupSheet> {
     final profile = ref.read(currentUserProfileProvider).valueOrNull;
     final config = InterviewConfig(
       topic: _topic,
-      difficulty: _difficulty ??
+      difficulty:
+          _difficulty ??
           InterviewDifficulty.forExperience(profile?.experienceLevel ?? ''),
       questionCount: _count,
       targetRole: profile?.targetRole ?? '',
@@ -66,7 +67,8 @@ class _InterviewSetupSheetState extends ConsumerState<_InterviewSetupSheet> {
 
     return Padding(
       padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -74,13 +76,15 @@ class _InterviewSetupSheetState extends ConsumerState<_InterviewSetupSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(widget.topic ?? 'Custom topic',
-                  style: theme.textTheme.headlineMedium),
+              Text(
+                widget.topic ?? 'Custom topic',
+                style: theme.textTheme.headlineMedium,
+              ),
               const SizedBox(height: 4),
               Text(
                 profile?.targetRole.isNotEmpty == true
                     ? 'Questions are tailored to ${profile!.targetRole}'
-                        '${experience.isNotEmpty ? ' · $experience' : ''}'
+                          '${experience.isNotEmpty ? ' · $experience' : ''}'
                     : 'Set your target role in Profile for tailored questions',
                 style: theme.textTheme.bodyMedium,
               ),
@@ -115,28 +119,36 @@ class _InterviewSetupSheetState extends ConsumerState<_InterviewSetupSheet> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(difficulty.description,
-                  style: const TextStyle(
-                      color: AppColors.textGrey, fontSize: 12.5)),
+              Text(
+                difficulty.description,
+                style: const TextStyle(
+                  color: AppColors.textGrey,
+                  fontSize: 12.5,
+                ),
+              ),
               const SizedBox(height: 24),
               Text('Questions', style: theme.textTheme.titleLarge),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 children: InterviewConfig.questionCounts
-                    .map((n) => ChoiceChip(
-                          label: Text('$n'),
-                          selected: _count == n,
-                          showCheckmark: false,
-                          onSelected: (_) => setState(() => _count = n),
-                        ))
+                    .map(
+                      (n) => ChoiceChip(
+                        label: Text('$n'),
+                        selected: _count == n,
+                        showCheckmark: false,
+                        onSelected: (_) => setState(() => _count = n),
+                      ),
+                    )
                     .toList(),
               ),
               const SizedBox(height: 8),
               Text(
                 'About ${_count * 2}–${_count * 3} min · follow-up questions count toward the total',
-                style:
-                    const TextStyle(color: AppColors.textGrey, fontSize: 12.5),
+                style: const TextStyle(
+                  color: AppColors.textGrey,
+                  fontSize: 12.5,
+                ),
               ),
               const SizedBox(height: 28),
               ElevatedButton(

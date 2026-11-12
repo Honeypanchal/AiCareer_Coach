@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../profile/data/profile_repository.dart';
 import '../data/auth_repository.dart';
 
@@ -40,18 +40,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     try {
       // signUpWithEmail now returns the uid
-      final uid = await ref.read(authRepositoryProvider).signUpWithEmail(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      final uid = await ref
+          .read(authRepositoryProvider)
+          .signUpWithEmail(
+            name: _nameController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
 
       // ── KEY FIX: Invalidate the profile cache so home/profile screen
       // re-fetches fresh data from Firestore instead of showing null
       ref.invalidate(userProfileProvider(uid));
 
       // GoRouter redirect handles navigation to home automatically
-
     } on FirebaseAuthException catch (e) {
       _showError(getAuthErrorMessage(e.code));
     } catch (e) {
@@ -63,18 +64,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: AppColors.error, size: 18),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Theme.of(context).cardTheme.color,
-      ),
-    );
+    showErrorSnackBar(context, message);
   }
 
   @override
@@ -97,8 +87,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               const SizedBox(height: 16),
               Text('Create account', style: theme.textTheme.displayMedium),
               const SizedBox(height: 8),
-              Text('Start your career journey today',
-                  style: theme.textTheme.bodyMedium),
+              Text(
+                'Start your career journey today',
+                style: theme.textTheme.bodyMedium,
+              ),
               const SizedBox(height: 36),
               Form(
                 key: _formKey,
@@ -113,10 +105,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         prefixIcon: Icon(Icons.person_outline_rounded),
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty)
+                        if (value == null || value.trim().isEmpty) {
                           return 'Please enter your name';
-                        if (value.trim().length < 2)
+                        }
+                        if (value.trim().length < 2) {
                           return 'Name must be at least 2 characters';
+                        }
                         return null;
                       },
                     ),
@@ -130,11 +124,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         prefixIcon: Icon(Icons.mail_outline_rounded),
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty)
+                        if (value == null || value.trim().isEmpty) {
                           return 'Please enter your email';
-                        if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
-                            .hasMatch(value.trim()))
+                        }
+                        if (!RegExp(
+                          r'^[\w.+-]+@([\w-]+\.)+[\w-]{2,}$',
+                        ).hasMatch(value.trim())) {
                           return 'Please enter a valid email';
+                        }
                         return null;
                       },
                     ),
@@ -147,18 +144,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         hintText: 'Password',
                         prefixIcon: const Icon(Icons.lock_outline_rounded),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                          ),
                           onPressed: () => setState(
-                                  () => _obscurePassword = !_obscurePassword),
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Please enter a password';
-                        if (value.length < 6)
+                        }
+                        if (value.length < 6) {
                           return 'Password must be at least 6 characters';
+                        }
                         return null;
                       },
                     ),
@@ -172,18 +174,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         hintText: 'Confirm password',
                         prefixIcon: const Icon(Icons.lock_outline_rounded),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscureConfirm
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined),
+                          icon: Icon(
+                            _obscureConfirm
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                          ),
                           onPressed: () => setState(
-                                  () => _obscureConfirm = !_obscureConfirm),
+                            () => _obscureConfirm = !_obscureConfirm,
+                          ),
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Please confirm your password';
-                        if (value != _passwordController.text)
+                        }
+                        if (value != _passwordController.text) {
                           return 'Passwords do not match';
+                        }
                         return null;
                       },
                     ),
@@ -195,9 +202,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 onPressed: _isLoading ? null : _signUp,
                 child: _isLoading
                     ? const SizedBox(
-                    height: 22, width: 22,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : const Text('Create Account'),
               ),
               const SizedBox(height: 24),
@@ -212,8 +223,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Already have an account? ',
-                      style: theme.textTheme.bodyMedium),
+                  Text(
+                    'Already have an account? ',
+                    style: theme.textTheme.bodyMedium,
+                  ),
                   TextButton(
                     onPressed: () => context.pop(),
                     style: TextButton.styleFrom(
@@ -221,8 +234,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text('Sign In',
-                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Sign In',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ],
               ),

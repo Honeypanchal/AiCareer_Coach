@@ -3,9 +3,9 @@
 // We keep this simple — no freezed/json_serializable needed for this small model.
 class ChatMessage {
   final String text;
-  final bool isUser;       // true = sent by user, false = sent by AI
+  final bool isUser; // true = sent by user, false = sent by AI
   final DateTime timestamp;
-  final bool isError;      // true if this message represents an error state
+  final bool isError; // true if this message represents an error state
 
   ChatMessage({
     required this.text,

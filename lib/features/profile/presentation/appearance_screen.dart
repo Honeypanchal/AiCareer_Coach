@@ -28,9 +28,8 @@ class AppearanceScreen extends ConsumerWidget {
             icon: Icons.brightness_auto_rounded,
             selected: mode == ThemeMode.system,
             isDark: isDark,
-            onTap: () => ref
-                .read(themeModeProvider.notifier)
-                .setMode(ThemeMode.system),
+            onTap: () =>
+                ref.read(themeModeProvider.notifier).setMode(ThemeMode.system),
           ),
           _ModeTile(
             title: 'Light',
@@ -89,8 +88,10 @@ class _ModeTile extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onTap,
-        leading: Icon(icon,
-            color: selected ? AppColors.primary : AppColors.textGrey),
+        leading: Icon(
+          icon,
+          color: selected ? AppColors.primary : AppColors.textGrey,
+        ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle),
         trailing: selected

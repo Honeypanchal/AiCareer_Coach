@@ -30,48 +30,53 @@ Future<Uint8List> buildResumePdf(ImprovedResume resume, {ResumeFonts? fonts}) {
   );
 
   pw.Widget heading(String text) => pw.Container(
-        margin: const pw.EdgeInsets.only(top: 12, bottom: 5),
-        padding: const pw.EdgeInsets.only(bottom: 2),
-        decoration: const pw.BoxDecoration(
-          border: pw.Border(bottom: pw.BorderSide(color: accent, width: 0.8)),
-        ),
-        child: pw.Text(
-          clean(text).toUpperCase(),
-          style: pw.TextStyle(
-              fontSize: 10.5,
-              fontWeight: pw.FontWeight.bold,
-              color: accent,
-              letterSpacing: 0.6),
-        ),
-      );
+    margin: const pw.EdgeInsets.only(top: 12, bottom: 5),
+    padding: const pw.EdgeInsets.only(bottom: 2),
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(bottom: pw.BorderSide(color: accent, width: 0.8)),
+    ),
+    child: pw.Text(
+      clean(text).toUpperCase(),
+      style: pw.TextStyle(
+        fontSize: 10.5,
+        fontWeight: pw.FontWeight.bold,
+        color: accent,
+        letterSpacing: 0.6,
+      ),
+    ),
+  );
 
   pw.Widget bullet(String text) => pw.Padding(
-        padding: const pw.EdgeInsets.only(left: 6, bottom: 2),
-        child: pw.Row(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(top: 3.2, right: 6),
-              child: pw.Container(
-                width: 2.6,
-                height: 2.6,
-                decoration: const pw.BoxDecoration(
-                    color: PdfColors.black, shape: pw.BoxShape.circle),
-              ),
+    padding: const pw.EdgeInsets.only(left: 6, bottom: 2),
+    child: pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(top: 3.2, right: 6),
+          child: pw.Container(
+            width: 2.6,
+            height: 2.6,
+            decoration: const pw.BoxDecoration(
+              color: PdfColors.black,
+              shape: pw.BoxShape.circle,
             ),
-            pw.Expanded(
-              child: pw.Text(clean(text),
-                  style: const pw.TextStyle(fontSize: 9.8, lineSpacing: 1.5)),
-            ),
-          ],
+          ),
         ),
-      );
+        pw.Expanded(
+          child: pw.Text(
+            clean(text),
+            style: const pw.TextStyle(fontSize: 9.8, lineSpacing: 1.5),
+          ),
+        ),
+      ],
+    ),
+  );
 
   List<pw.Widget> entry(ResumeEntry e) {
-    final subtitle = [e.organization, e.location]
-        .where((s) => s.isNotEmpty)
-        .map(clean)
-        .join(' | ');
+    final subtitle = [
+      e.organization,
+      e.location,
+    ].where((s) => s.isNotEmpty).map(clean).join(' | ');
     return [
       pw.Padding(
         padding: const pw.EdgeInsets.only(top: 5, bottom: 2),
@@ -82,18 +87,26 @@ Future<Uint8List> buildResumePdf(ImprovedResume resume, {ResumeFonts? fonts}) {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text(clean(e.title),
-                      style: pw.TextStyle(
-                          fontSize: 10.5, fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                    clean(e.title),
+                    style: pw.TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                   if (subtitle.isNotEmpty)
-                    pw.Text(subtitle,
-                        style: const pw.TextStyle(fontSize: 9.8, color: grey)),
+                    pw.Text(
+                      subtitle,
+                      style: const pw.TextStyle(fontSize: 9.8, color: grey),
+                    ),
                 ],
               ),
             ),
             if (e.period.isNotEmpty)
-              pw.Text(clean(e.period),
-                  style: const pw.TextStyle(fontSize: 9.5, color: grey)),
+              pw.Text(
+                clean(e.period),
+                style: const pw.TextStyle(fontSize: 9.5, color: grey),
+              ),
           ],
         ),
       ),
@@ -102,43 +115,52 @@ Future<Uint8List> buildResumePdf(ImprovedResume resume, {ResumeFonts? fonts}) {
   }
 
   pw.Widget listSection(ResumeListSection s) => pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 2),
-        child: pw.RichText(
-          text: pw.TextSpan(
-            style: const pw.TextStyle(fontSize: 9.8, lineSpacing: 1.5),
-            children: [
-              pw.TextSpan(
-                  text: '${clean(s.title)}: ',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-              pw.TextSpan(text: s.items.map(clean).join(', ')),
-            ],
+    padding: const pw.EdgeInsets.only(bottom: 2),
+    child: pw.RichText(
+      text: pw.TextSpan(
+        style: const pw.TextStyle(fontSize: 9.8, lineSpacing: 1.5),
+        children: [
+          pw.TextSpan(
+            text: '${clean(s.title)}: ',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
-        ),
-      );
+          pw.TextSpan(text: s.items.map(clean).join(', ')),
+        ],
+      ),
+    ),
+  );
 
   doc.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 36),
       build: (context) => [
-        pw.Text(clean(resume.name),
-            style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+        pw.Text(
+          clean(resume.name),
+          style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+        ),
         if (resume.headline.isNotEmpty)
           pw.Padding(
             padding: const pw.EdgeInsets.only(top: 2),
-            child: pw.Text(clean(resume.headline),
-                style: const pw.TextStyle(fontSize: 11.5, color: accent)),
+            child: pw.Text(
+              clean(resume.headline),
+              style: const pw.TextStyle(fontSize: 11.5, color: accent),
+            ),
           ),
         if (resume.contact.isNotEmpty)
           pw.Padding(
             padding: const pw.EdgeInsets.only(top: 4),
-            child: pw.Text(resume.contact.map(clean).join('  |  '),
-                style: const pw.TextStyle(fontSize: 9.5, color: grey)),
+            child: pw.Text(
+              resume.contact.map(clean).join('  |  '),
+              style: const pw.TextStyle(fontSize: 9.5, color: grey),
+            ),
           ),
         if (resume.summary.isNotEmpty) ...[
           heading('Summary'),
-          pw.Text(clean(resume.summary),
-              style: const pw.TextStyle(fontSize: 9.8, lineSpacing: 1.5)),
+          pw.Text(
+            clean(resume.summary),
+            style: const pw.TextStyle(fontSize: 9.8, lineSpacing: 1.5),
+          ),
         ],
         if (resume.skills.isNotEmpty) ...[
           heading('Skills'),
@@ -170,10 +192,20 @@ Future<Uint8List> buildResumePdf(ImprovedResume resume, {ResumeFonts? fonts}) {
 /// Replaces characters Helvetica can't draw with close ASCII ones.
 String latinSafe(String text) {
   const replacements = {
-    '–': '-', '—': '-', '‒': '-', '−': '-',
-    '‘': "'", '’': "'", '“': '"', '”': '"',
-    '•': '-', '●': '-', '…': '...', ' ': ' ',
-    '₹': 'Rs.', '→': '->',
+    '–': '-',
+    '—': '-',
+    '‒': '-',
+    '−': '-',
+    '‘': "'",
+    '’': "'",
+    '“': '"',
+    '”': '"',
+    '•': '-',
+    '●': '-',
+    '…': '...',
+    ' ': ' ',
+    '₹': 'Rs.',
+    '→': '->',
   };
   final buffer = StringBuffer();
   for (final rune in text.runes) {

@@ -15,8 +15,10 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 /// Live profile for a given uid. Screens should pass uid explicitly
 /// so there is no race with auth restoring.
-final userProfileProvider =
-    StreamProvider.family<UserProfile?, String>((ref, uid) {
+final userProfileProvider = StreamProvider.family<UserProfile?, String>((
+  ref,
+  uid,
+) {
   return ref.watch(profileRepositoryProvider).watchProfile(uid);
 });
 
@@ -46,9 +48,9 @@ class ProfileRepository {
         .snapshots()
         .where((snap) => snap.exists || !snap.metadata.isFromCache)
         .map((snap) {
-      if (!snap.exists) return null;
-      return UserProfile.fromMap(uid, snap.data());
-    });
+          if (!snap.exists) return null;
+          return UserProfile.fromMap(uid, snap.data());
+        });
   }
 
   Future<void> updateProfile({
@@ -61,9 +63,7 @@ class ProfileRepository {
     List<String>? skills,
     bool? onboardingCompleted,
   }) async {
-    final data = <String, dynamic>{
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
+    final data = <String, dynamic>{'updatedAt': FieldValue.serverTimestamp()};
     if (name != null) data['name'] = name.trim();
     if (headline != null) data['headline'] = headline.trim();
     if (location != null) data['location'] = location.trim();
@@ -81,15 +81,9 @@ class ProfileRepository {
     }
   }
 
-  Future<String> uploadAvatar({
-    required String uid,
-    required File file,
-  }) async {
+  Future<String> uploadAvatar({required String uid, required File file}) async {
     final ref = _storage.ref().child('users/$uid/avatar.jpg');
-    await ref.putFile(
-      file,
-      SettableMetadata(contentType: 'image/jpeg'),
-    );
+    await ref.putFile(file, SettableMetadata(contentType: 'image/jpeg'));
     final url = await ref.getDownloadURL();
 
     await _userDoc(uid).set({
@@ -125,10 +119,7 @@ class ProfileRepository {
       throw FirebaseAuthException(code: 'user-not-found');
     }
 
-    final cred = EmailAuthProvider.credential(
-      email: email,
-      password: password,
-    );
+    final cred = EmailAuthProvider.credential(email: email, password: password);
     await user.reauthenticateWithCredential(cred);
 
     final uid = user.uid;

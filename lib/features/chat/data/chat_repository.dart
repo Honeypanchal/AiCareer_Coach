@@ -18,18 +18,21 @@ List<Map<String, dynamic>> buildGeminiContents(List<ChatMessage> history) {
   return history
       .where((msg) => !msg.isError)
       .skipWhile((msg) => !msg.isUser)
-      .map((msg) => {
-            'role': msg.isUser ? 'user' : 'model',
-            'parts': [
-              {'text': msg.text}
-            ],
-          })
+      .map(
+        (msg) => {
+          'role': msg.isUser ? 'user' : 'model',
+          'parts': [
+            {'text': msg.text},
+          ],
+        },
+      )
       .toList();
 }
 
 // ── Build the system prompt, personalized with the user's profile ─────────────
 String buildSystemInstruction(String careerContext) {
-  const base = '''You are an AI Career Coach inside a mobile app called "AI Career Coach".
+  const base =
+      '''You are an AI Career Coach inside a mobile app called "AI Career Coach".
 Your job is to help users with:
 - Interview preparation (technical & HR)
 - Resume improvement tips
@@ -95,8 +98,10 @@ class ChatRepository {
   }
 
   Future<void> clearChatHistory(String uid) async {
-    final collection =
-        _firestore.collection('users').doc(uid).collection('chat_messages');
+    final collection = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('chat_messages');
 
     // Delete in chunks so long histories stay within Firestore's batch limit.
     while (true) {
