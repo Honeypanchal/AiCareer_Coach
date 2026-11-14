@@ -107,16 +107,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 34,
-              height: 34,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                gradient: AppGradients.hero,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: const Icon(
-                Icons.psychology_rounded,
-                color: AppColors.primary,
-                size: 20,
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 19,
               ),
             ),
             const SizedBox(width: 10),
@@ -125,7 +132,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               children: [
                 const Text(
                   'AI Career Coach',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
                 ),
                 Text(
                   chatState.isLoading ? 'Typing...' : 'Always here to help',
@@ -296,8 +303,9 @@ class _ChatBubble extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
+                    gradient: isUser ? AppGradients.primary : null,
                     color: isUser
-                        ? AppColors.primary
+                        ? null
                         : message.isError
                         ? AppColors.error.withValues(alpha: 0.08)
                         : (isDark

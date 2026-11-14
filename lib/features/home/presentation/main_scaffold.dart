@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../interview/presentation/interview_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
+import '../../resume/presentation/resume_check_screen.dart';
 import 'home_screen.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -32,24 +33,32 @@ class MainScaffold extends ConsumerWidget {
             HomeScreen(),
             ChatScreen(),
             InterviewScreen(),
+            ResumeCheckScreen(inTab: true),
             ProfileScreen(),
           ],
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            border: Border(
-              top: BorderSide(
-                color: isDark
-                    ? const Color(0xFF2A2A40)
-                    : const Color(0xFFEEEEF9),
-                width: 0.5,
+        // A floating rounded bar. Its height comes from its content only,
+        // so it can never grow over the screen.
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-          ),
-          child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -81,13 +90,22 @@ class MainScaffold extends ConsumerWidget {
                         ref.read(bottomNavIndexProvider.notifier).state = 2,
                   ),
                   _NavItem(
-                    icon: Icons.person_outline_rounded,
-                    activeIcon: Icons.person_rounded,
-                    label: 'Profile',
+                    icon: Icons.description_outlined,
+                    activeIcon: Icons.description_rounded,
+                    label: 'Resume',
                     index: 3,
                     currentIndex: currentIndex,
                     onTap: () =>
                         ref.read(bottomNavIndexProvider.notifier).state = 3,
+                  ),
+                  _NavItem(
+                    icon: Icons.person_outline_rounded,
+                    activeIcon: Icons.person_rounded,
+                    label: 'Profile',
+                    index: 4,
+                    currentIndex: currentIndex,
+                    onTap: () =>
+                        ref.read(bottomNavIndexProvider.notifier).state = 4,
                   ),
                 ],
               ),
@@ -124,14 +142,21 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          gradient: isActive ? AppGradients.primary : null,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -141,17 +166,18 @@ class _NavItem extends StatelessWidget {
               child: Icon(
                 isActive ? activeIcon : icon,
                 key: ValueKey(isActive),
-                color: isActive ? AppColors.primary : AppColors.textGrey,
-                size: 24,
+                color: isActive ? Colors.white : AppColors.textGrey,
+                size: 23,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
+                fontFamily: AppTheme.fontFamily,
                 fontSize: 11,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive ? AppColors.primary : AppColors.textGrey,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive ? Colors.white : AppColors.textGrey,
               ),
               child: Text(label),
             ),

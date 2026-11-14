@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../chat/presentation/chat_provider.dart';
 import '../../home/presentation/main_scaffold.dart';
@@ -17,7 +18,11 @@ import 'resume_check_controller.dart';
 import 'widgets/resume_report_view.dart';
 
 class ResumeCheckScreen extends ConsumerStatefulWidget {
-  const ResumeCheckScreen({super.key});
+  /// True when shown as a bottom-bar tab: back is then handled by the
+  /// home screen, which returns to the Home tab.
+  final bool inTab;
+
+  const ResumeCheckScreen({super.key, this.inTab = false});
 
   @override
   ConsumerState<ResumeCheckScreen> createState() => _ResumeCheckScreenState();
@@ -153,6 +158,30 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
       }
     });
 
+    final scaffold = Scaffold(
+      appBar: AppBar(
+        title: const Text('Resume Check'),
+        actions: [
+          if (state.phase == ResumeCheckPhase.result)
+            IconButton(
+              tooltip: 'Check another resume',
+              icon: const Icon(Icons.restart_alt_rounded),
+              onPressed: _notifier.reset,
+            ),
+          IconButton(
+            tooltip: 'Resume history',
+            icon: const Icon(Icons.history_rounded),
+            onPressed: state.busy
+                ? null
+                : () => context.push(AppRoutes.resumeHistory),
+          ),
+        ],
+      ),
+      body: SafeArea(child: _body(state)),
+    );
+
+    if (widget.inTab) return scaffold;
+
     // While the AI is working, back asks first instead of doing nothing
     // (a silent, blocked back gesture feels like the app has frozen).
     return PopScope(
@@ -161,27 +190,7 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
         if (didPop) return;
         if (await _confirmStop() && context.mounted) context.pop();
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Resume Check'),
-          actions: [
-            if (state.phase == ResumeCheckPhase.result)
-              IconButton(
-                tooltip: 'Check another resume',
-                icon: const Icon(Icons.restart_alt_rounded),
-                onPressed: _notifier.reset,
-              ),
-            IconButton(
-              tooltip: 'Resume history',
-              icon: const Icon(Icons.history_rounded),
-              onPressed: state.busy
-                  ? null
-                  : () => context.push(AppRoutes.resumeHistory),
-            ),
-          ],
-        ),
-        body: SafeArea(child: _body(state)),
-      ),
+      child: scaffold,
     );
   }
 
@@ -247,19 +256,21 @@ class _ResumeCheckScreenState extends ConsumerState<ResumeCheckScreen> {
                       ? AppColors.primary.withValues(alpha: 0.5)
                       : AppColors.success,
                   child: file == null
-                      ? const Column(
+                      ? Column(
                           children: [
-                            Icon(
-                              Icons.upload_file_rounded,
-                              size: 40,
-                              color: AppColors.primary,
+                            const SizedBox(height: 6),
+                            const IconBadge(
+                              icon: Icons.upload_file_rounded,
+                              gradient: AppGradients.resume,
+                              size: 58,
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 14),
                             Text(
                               'Upload your resume',
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                                color: AppColors.text(context),
                               ),
                             ),
                             SizedBox(height: 4),

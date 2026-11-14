@@ -528,10 +528,11 @@ class _QuestionCard extends StatelessWidget {
           const SizedBox(height: 12),
           SelectableText(
             question,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 17,
-              fontWeight: FontWeight.w600,
-              height: 1.4,
+              fontWeight: FontWeight.w700,
+              height: 1.45,
+              color: AppColors.text(context),
             ),
           ),
         ],

@@ -23,20 +23,35 @@ class ProfileAvatar extends StatelessWidget {
     final initial = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : 'U';
     final hasPhoto = photoUrl.isNotEmpty;
 
-    final avatar = CircleAvatar(
-      radius: radius,
-      backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-      backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
-      child: hasPhoto
-          ? null
-          : Text(
-              initial,
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: radius * 0.72,
-                fontWeight: FontWeight.bold,
+    // Gradient circle with a soft ring; a photo fills it when there is one.
+    final avatar = Container(
+      padding: EdgeInsets.all(radius > 30 ? 3 : 2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: AppGradients.hero,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: radius * 0.6,
+            offset: Offset(0, radius * 0.15),
+          ),
+        ],
+      ),
+      child: CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.transparent,
+        backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
+        child: hasPhoto
+            ? null
+            : Text(
+                initial,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: radius * 0.78,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-            ),
+      ),
     );
 
     final content = showEditBadge

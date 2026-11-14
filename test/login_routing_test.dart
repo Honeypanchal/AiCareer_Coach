@@ -129,9 +129,20 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       expect(find.byType(MainScaffold), findsOneWidget);
 
-      // Back on another tab returns to Home instead of leaving the app.
-      container.read(bottomNavIndexProvider.notifier).state = 2;
+      // The bottom bar must not cover the screen: the content keeps its room.
+      final screen = tester.getSize(find.byType(MainScaffold)).height;
+      expect(
+        tester.getSize(find.byType(IndexedStack)).height,
+        greaterThan(screen * 0.7),
+      );
+
+      // The Resume tab opens from the bottom bar.
+      await tester.tap(find.text('Resume'));
       await tester.pump();
+      expect(container.read(bottomNavIndexProvider), 3);
+      expect(find.text('Resume Check'), findsOneWidget);
+
+      // Back on another tab returns to Home instead of leaving the app.
       final handled = await tester.binding.handlePopRoute();
       await tester.pump();
       expect(handled, isTrue);

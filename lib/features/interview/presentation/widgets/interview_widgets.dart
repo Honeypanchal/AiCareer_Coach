@@ -58,14 +58,21 @@ class InterviewCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color:
-              borderColor ??
-              (isDark ? const Color(0xFF2A2A40) : const Color(0xFFEEEEF9)),
-          width: borderColor == null ? 0.5 : 1,
+          color: borderColor ?? AppColors.border(context),
+          width: borderColor == null ? 1 : 1.3,
         ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: const Color(0xFF2A2470).withValues(alpha: 0.05),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: child,
     );
@@ -148,7 +155,11 @@ class PointList extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              color: AppColors.text(context),
+            ),
           ),
           const SizedBox(height: 8),
           ...points.map(
@@ -165,7 +176,11 @@ class PointList extends StatelessWidget {
                   Expanded(
                     child: Text(
                       p,
-                      style: const TextStyle(fontSize: 13.5, height: 1.4),
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        height: 1.4,
+                        color: AppColors.text(context).withValues(alpha: 0.88),
+                      ),
                     ),
                   ),
                 ],
@@ -294,13 +309,17 @@ class VoiceFeedback extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.mic_rounded, size: 16, color: AppColors.primary),
-              SizedBox(width: 6),
+              const Icon(Icons.mic_rounded, size: 16, color: AppColors.primary),
+              const SizedBox(width: 6),
               Text(
                 'What you said',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: AppColors.text(context),
+                ),
               ),
             ],
           ),
@@ -309,23 +328,28 @@ class VoiceFeedback extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F0F14) : AppColors.lightBg,
+              color: isDark ? AppColors.darkBg : AppColors.lightBg,
               borderRadius: BorderRadius.circular(12),
             ),
             child: SelectableText(
               '"${turn.answer}"',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13.5,
                 height: 1.45,
                 fontStyle: FontStyle.italic,
+                color: AppColors.text(context).withValues(alpha: 0.9),
               ),
             ),
           ),
           if (delivery != null) ...[
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'How you said it',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: AppColors.text(context),
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(

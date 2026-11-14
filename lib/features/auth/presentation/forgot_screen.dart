@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../data/auth_repository.dart';
 
@@ -63,10 +64,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: _emailSent ? _buildSuccessView(theme) : _buildFormView(theme),
+      body: BrandBackground(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: _emailSent
+                ? _buildSuccessView(theme)
+                : _buildFormView(theme),
+          ),
         ),
       ),
     );

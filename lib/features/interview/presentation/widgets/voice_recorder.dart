@@ -227,7 +227,15 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
                 height: 76,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: widget.enabled ? color : AppColors.textGrey,
+                  // Brand gradient when idle; solid red while recording.
+                  gradient: widget.enabled && !recording
+                      ? AppGradients.primary
+                      : null,
+                  color: !widget.enabled
+                      ? AppColors.textGrey
+                      : recording
+                      ? color
+                      : null,
                   boxShadow: [
                     if (widget.enabled)
                       BoxShadow(
