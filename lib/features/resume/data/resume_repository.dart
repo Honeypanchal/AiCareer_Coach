@@ -19,7 +19,7 @@ final resumeHistoryProvider = StreamProvider<List<ResumeAnalysis>>((ref) {
 
 // ── Prompts ──────────────────────────────────────────────────────────────────
 const resumeReviewerInstruction =
-    '''You are an expert recruiter and resume reviewer inside the "AI Career Coach" app.
+    '''You are an expert recruiter and resume reviewer inside the "PrepPilot" app.
 
 Accuracy rules:
 - Only describe content that actually appears in the attached resume. Never invent facts about the candidate.

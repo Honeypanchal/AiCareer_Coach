@@ -18,7 +18,7 @@ class AppearanceScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
           Text(
-            'Choose how AI Career Coach looks. System follows your phone setting.',
+            'Choose how PrepPilot looks. System follows your phone setting.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 20),

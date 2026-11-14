@@ -5,6 +5,7 @@ import '../../../core/ai/gemini_client.dart';
 import '../../../core/firebase/app_firestore.dart';
 import '../../chat/data/chat_repository.dart';
 import 'interview_models.dart';
+import 'voice_answer.dart';
 
 final interviewRepositoryProvider = Provider<InterviewRepository>((ref) {
   return InterviewRepository(ref.watch(geminiClientProvider));
@@ -26,6 +27,8 @@ class AnswerEvaluation {
   final String modelAnswer;
   final String? nextQuestion;
   final bool nextIsFollowUp;
+  final String? transcript; // voice answers: what the candidate said
+  final VoiceDelivery? delivery; // voice answers: how they said it
 
   const AnswerEvaluation({
     required this.score,
@@ -34,7 +37,18 @@ class AnswerEvaluation {
     required this.modelAnswer,
     this.nextQuestion,
     this.nextIsFollowUp = false,
+    this.transcript,
+    this.delivery,
   });
+}
+
+/// The recording had no speech the AI could understand.
+class NoSpeechException extends GeminiException {
+  const NoSpeechException()
+    : super(
+        "We couldn't hear an answer in that recording. "
+        'Check your microphone and try again, or type your answer.',
+      );
 }
 
 class ReportNotes {
@@ -59,7 +73,7 @@ String buildInterviewerInstruction(InterviewConfig config) {
       'Experience: ${config.experienceLevel}',
   ].join('\n');
 
-  return '''You are an experienced interviewer running a mock interview in the "AI Career Coach" app.
+  return '''You are an experienced interviewer running a mock interview in the "PrepPilot" app.
 
 Interview topic: ${config.topic}
 Difficulty: ${config.difficulty.label} — ${config.difficulty.description}
@@ -107,6 +121,7 @@ String buildEvaluationPrompt({
   required String answer,
   required bool skipped,
   required bool wantNextQuestion,
+  bool byVoice = false,
 }) {
   final next = !wantNextQuestion
       ? 'This was the last question. Set nextQuestion to "" and nextIsFollowUp to false.'
@@ -120,7 +135,11 @@ String buildEvaluationPrompt({
             'part of the topic, a little deeper if they did well, and set nextIsFollowUp to false.';
 
   return '''${previousTurns.isEmpty ? '' : 'Interview so far:\n${_transcript(previousTurns)}'}Current question${isFollowUp ? ' (follow-up)' : ''}: $question
-${skipped ? 'The candidate skipped this question.' : 'Candidate\'s answer:\n"""$answer"""'}
+${skipped
+      ? 'The candidate skipped this question.'
+      : byVoice
+      ? _voiceAnswerInstructions
+      : 'Candidate\'s answer:\n"""$answer"""'}
 
 Evaluate the answer to the current question:
 - score: 0–10 using the scoring rules${skipped ? ' (a skipped question scores 0)' : ''}.
@@ -129,6 +148,12 @@ Evaluate the answer to the current question:
 - modelAnswer: a concise, accurate ideal answer (under 150 words). Markdown is allowed.
 $next''';
 }
+
+const _voiceAnswerInstructions =
+    '''The candidate answered out loud. Their recording is attached.
+- transcript: write exactly what they said, word for word, including filler words (um, uh, like, you know). If the recording has no understandable speech, set transcript to "" and score to 0.
+- Evaluate the transcript, not the audio quality: a correct answer with an accent or pauses still scores well.
+- delivery: fillerWords = how many filler words they used; pace = "slow", "good" or "fast"; tips = up to 3 short, specific tips on HOW they spoke (clarity, structure, confidence, filler words). Empty tips if the delivery was already strong.''';
 
 String buildReportPrompt(List<InterviewTurn> turns) {
   return '''The interview is finished. Here is the full transcript with scores:
@@ -168,6 +193,34 @@ const _evaluationSchema = {
   ],
 };
 
+final _voiceEvaluationSchema = {
+  'type': 'object',
+  'properties': {
+    'transcript': {'type': 'string'},
+    ...(_evaluationSchema['properties'] as Map<String, dynamic>),
+    'delivery': {
+      'type': 'object',
+      'properties': {
+        'fillerWords': {'type': 'integer', 'minimum': 0},
+        'pace': {
+          'type': 'string',
+          'enum': ['slow', 'good', 'fast'],
+        },
+        'tips': {
+          'type': 'array',
+          'items': {'type': 'string'},
+        },
+      },
+      'required': ['fillerWords', 'pace', 'tips'],
+    },
+  },
+  'required': [
+    'transcript',
+    ...(_evaluationSchema['required'] as List<String>),
+    'delivery',
+  ],
+};
+
 const _questionSchema = {
   'type': 'object',
   'properties': {
@@ -201,7 +254,15 @@ AnswerEvaluation parseEvaluation(
   Map<String, dynamic> json, {
   required bool skipped,
   required bool wantNextQuestion,
+  bool byVoice = false,
 }) {
+  final transcript = byVoice
+      ? (json['transcript'] as String?)?.trim() ?? ''
+      : null;
+  if (transcript != null && transcript.isEmpty) {
+    throw const NoSpeechException();
+  }
+
   final next = (json['nextQuestion'] as String?)?.trim() ?? '';
   if (wantNextQuestion && next.isEmpty) {
     throw const GeminiException(
@@ -217,6 +278,10 @@ AnswerEvaluation parseEvaluation(
     modelAnswer: (json['modelAnswer'] as String?)?.trim() ?? '',
     nextQuestion: wantNextQuestion ? next : null,
     nextIsFollowUp: wantNextQuestion && json['nextIsFollowUp'] == true,
+    transcript: transcript,
+    delivery: byVoice && json['delivery'] is Map
+        ? VoiceDelivery.fromMap(Map<String, dynamic>.from(json['delivery']))
+        : null,
   );
 }
 
@@ -266,7 +331,9 @@ class InterviewRepository {
     required String answer,
     required bool skipped,
     required bool wantNextQuestion,
+    VoiceAnswer? voice,
   }) async {
+    final byVoice = voice != null && !skipped;
     final json = await _gemini.generateJson(
       prompt: buildEvaluationPrompt(
         previousTurns: previousTurns,
@@ -275,9 +342,16 @@ class InterviewRepository {
         answer: answer,
         skipped: skipped,
         wantNextQuestion: wantNextQuestion,
+        byVoice: byVoice,
       ),
       systemInstruction: buildInterviewerInstruction(config),
-      schema: _evaluationSchema,
+      schema: byVoice ? _voiceEvaluationSchema : _evaluationSchema,
+      // The recording goes in the same call: one request transcribes,
+      // scores and writes the next question.
+      attachments: [
+        if (byVoice)
+          GeminiClient.inlineFile(voice.wavBytes, VoiceAnswer.mimeType),
+      ],
       temperature: 0.4,
       // A skipped question only needs a model answer and the next question.
       // A real answer gets a little thinking time so the score is fair.
@@ -287,6 +361,7 @@ class InterviewRepository {
       json,
       skipped: skipped,
       wantNextQuestion: wantNextQuestion,
+      byVoice: byVoice,
     );
   }
 

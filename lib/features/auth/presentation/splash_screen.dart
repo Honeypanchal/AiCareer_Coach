@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_logo.dart';
 import '../../../core/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -101,11 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.psychology_rounded,
-                  color: Colors.white,
-                  size: 52,
-                ),
+                child: AppLogoMark(size: 70),
               ),
             ),
 
@@ -117,7 +114,7 @@ class _SplashScreenState extends State<SplashScreen>
               builder: (context, child) =>
                   FadeTransition(opacity: _logoFade, child: child),
               child: Text(
-                'AI Career Coach',
+                'PrepPilot',
                 style: Theme.of(context).textTheme.displayMedium,
               ),
             ),
@@ -130,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
               builder: (context, child) =>
                   FadeTransition(opacity: _taglineFade, child: child),
               child: Text(
-                'Your personal career growth partner',
+                'Your AI career coach',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),

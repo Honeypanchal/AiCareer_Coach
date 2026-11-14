@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_logo.dart';
 import '../../../core/theme/app_theme.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -24,28 +25,24 @@ class AboutScreen extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
-                Icons.psychology_rounded,
-                color: Colors.white,
-                size: 38,
-              ),
+              child: AppLogoMark(size: 51),
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            'AI Career Coach',
+            'PrepPilot',
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineMedium,
           ),
           const SizedBox(height: 4),
           const Text(
-            'Version 1.0.0',
+            'AI Career Coach · Version 1.0.0',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textGrey),
           ),
           const SizedBox(height: 28),
           Text(
-            'A learning project that helps you practice interviews, review your resume, and get career guidance from Gemini — personalized to your target role.',
+            'PrepPilot helps you practise interviews out loud, improve your resume and get career guidance from Gemini, personalised to your target role.',
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 20),
@@ -56,7 +53,7 @@ class AboutScreen extends StatelessWidget {
             'Resume Check — score, prioritised fixes, missing keywords and an improved CV PDF',
           ),
           const _Bullet(
-            'Mock Interview — adaptive questions, feedback on every answer and a final report',
+            'Mock Interview — type or speak your answers; adaptive questions, feedback on content and delivery, and a final report',
           ),
           const _Bullet('Profile — role, skills, theme, account'),
         ],

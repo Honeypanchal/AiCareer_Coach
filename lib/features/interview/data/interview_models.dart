@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'voice_answer.dart';
+
 // ─── Difficulty ────────────────────────────────────────────────────────────────
 enum InterviewDifficulty {
   easy('Easy', 'Fundamentals and definitions'),
@@ -61,6 +63,8 @@ class InterviewTurn {
   final List<String> good;
   final List<String> missing;
   final String modelAnswer;
+  final bool byVoice; // answer is the transcript of a recording
+  final VoiceDelivery? delivery; // how it was spoken (voice answers only)
 
   const InterviewTurn({
     required this.question,
@@ -71,6 +75,8 @@ class InterviewTurn {
     required this.good,
     required this.missing,
     required this.modelAnswer,
+    this.byVoice = false,
+    this.delivery,
   });
 
   Map<String, dynamic> toMap() => {
@@ -82,6 +88,8 @@ class InterviewTurn {
     'good': good,
     'missing': missing,
     'modelAnswer': modelAnswer,
+    if (byVoice) 'byVoice': true,
+    if (delivery != null) 'delivery': delivery!.toMap(),
   };
 
   factory InterviewTurn.fromMap(Map<String, dynamic> map) {
@@ -94,6 +102,10 @@ class InterviewTurn {
       good: _stringList(map['good']),
       missing: _stringList(map['missing']),
       modelAnswer: map['modelAnswer'] as String? ?? '',
+      byVoice: map['byVoice'] == true,
+      delivery: map['delivery'] is Map
+          ? VoiceDelivery.fromMap(Map<String, dynamic>.from(map['delivery']))
+          : null,
     );
   }
 }

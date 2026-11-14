@@ -35,8 +35,9 @@ void main() {
     expect(text.style?.color, AppColors.error);
   });
 
-  testWidgets('error snackbar text is a readable red in light mode',
-      (tester) async {
+  testWidgets('error snackbar text is a readable red in light mode', (
+    tester,
+  ) async {
     await _showError(tester, AppTheme.lightTheme);
     final text = tester.widget<Text>(find.text('Something failed'));
     expect(text.style?.color, AppColors.errorOnLight);

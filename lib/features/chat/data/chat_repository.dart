@@ -32,7 +32,7 @@ List<Map<String, dynamic>> buildGeminiContents(List<ChatMessage> history) {
 // ── Build the system prompt, personalized with the user's profile ─────────────
 String buildSystemInstruction(String careerContext) {
   const base =
-      '''You are an AI Career Coach inside a mobile app called "AI Career Coach".
+      '''You are an AI Career Coach inside a mobile app called "PrepPilot".
 Your job is to help users with:
 - Interview preparation (technical & HR)
 - Resume improvement tips

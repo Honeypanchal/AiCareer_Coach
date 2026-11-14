@@ -1,11 +1,11 @@
 {
-    "name": "ai_career_coach",
-    "short_name": "ai_career_coach",
+    "name": "PrepPilot – AI Career Coach",
+    "short_name": "PrepPilot",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0F0F14",
+    "theme_color": "#6C63FF",
+    "description": "Mock interviews with voice feedback, resume review with an improved CV, and an AI career coach.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

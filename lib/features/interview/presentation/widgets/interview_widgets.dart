@@ -3,6 +3,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../data/interview_models.dart';
+import '../../data/voice_answer.dart';
 
 // ─── Shared pieces for the interview screens ──────────────────────────────────
 
@@ -253,6 +254,7 @@ class TurnFeedback extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (turn.byVoice) VoiceFeedback(turn: turn),
         PointList(
           title: 'What was good',
           points: turn.good,
@@ -267,6 +269,93 @@ class TurnFeedback extends StatelessWidget {
         ),
         ModelAnswer(text: turn.modelAnswer),
       ],
+    );
+  }
+}
+
+// ─── Voice answer: what was said and how ──────────────────────────────────────
+class VoiceFeedback extends StatelessWidget {
+  final InterviewTurn turn;
+
+  const VoiceFeedback({super.key, required this.turn});
+
+  @override
+  Widget build(BuildContext context) {
+    final delivery = turn.delivery;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillerColor = delivery == null || delivery.fillerWords <= 2
+        ? AppColors.success
+        : delivery.fillerWords <= 6
+        ? AppColors.warning
+        : AppColors.error;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.mic_rounded, size: 16, color: AppColors.primary),
+              SizedBox(width: 6),
+              Text(
+                'What you said',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F0F14) : AppColors.lightBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SelectableText(
+              '"${turn.answer}"',
+              style: const TextStyle(
+                fontSize: 13.5,
+                height: 1.45,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+          if (delivery != null) ...[
+            const SizedBox(height: 14),
+            const Text(
+              'How you said it',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Tag(
+                  label: delivery.fillerWords == 0
+                      ? 'No filler words'
+                      : '${delivery.fillerWords} filler word'
+                            '${delivery.fillerWords == 1 ? '' : 's'}',
+                  color: fillerColor,
+                ),
+                Tag(
+                  label: delivery.pace.label,
+                  color: delivery.pace == SpeakingPace.good
+                      ? AppColors.success
+                      : AppColors.warning,
+                ),
+              ],
+            ),
+            PointList(
+              title: 'Speaking tips',
+              points: delivery.tips,
+              icon: Icons.record_voice_over_outlined,
+              color: AppColors.primary,
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

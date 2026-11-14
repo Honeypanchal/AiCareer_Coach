@@ -260,8 +260,13 @@ class GeminiClient {
   }
 
   /// A PDF sent inline with the request (Gemini accepts PDFs up to 50 MB).
-  static Map<String, dynamic> inlinePdf(List<int> bytes) => {
-    'inlineData': {'mimeType': 'application/pdf', 'data': base64Encode(bytes)},
+  static Map<String, dynamic> inlinePdf(List<int> bytes) =>
+      inlineFile(bytes, 'application/pdf');
+
+  /// Any file sent inline with the request, e.g. a recorded answer.
+  /// Inline requests must stay under 20 MB in total.
+  static Map<String, dynamic> inlineFile(List<int> bytes, String mimeType) => {
+    'inlineData': {'mimeType': mimeType, 'data': base64Encode(bytes)},
   };
 }
 

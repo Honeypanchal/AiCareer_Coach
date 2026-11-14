@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/interview_models.dart';
+import '../data/voice_answer.dart';
 import 'interview_session_controller.dart';
+import 'widgets/voice_recorder.dart';
 import 'widgets/interview_widgets.dart';
 
 class InterviewSessionScreen extends ConsumerStatefulWidget {
@@ -23,6 +25,11 @@ class _InterviewSessionScreenState
   final _answer = TextEditingController();
   final _scroll = ScrollController();
 
+  // Voice answers
+  bool _voiceMode = false;
+  VoiceAnswer? _voice;
+  int _recorderKey = 0; // a new key gives the next question a fresh recorder
+
   InterviewSessionNotifier get _notifier =>
       ref.read(interviewSessionProvider(widget.config).notifier);
 
@@ -37,6 +44,23 @@ class _InterviewSessionScreenState
     _answer.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  void _clearVoice() {
+    setState(() {
+      _voice = null;
+      _recorderKey++;
+    });
+  }
+
+  void _submit() {
+    FocusScope.of(context).unfocus();
+    final voice = _voice;
+    if (_voiceMode) {
+      if (voice != null) _notifier.submitVoiceAnswer(voice);
+    } else {
+      _notifier.submitAnswer(_answer.text);
+    }
   }
 
   void _scrollToTop() {
@@ -108,6 +132,10 @@ class _InterviewSessionScreenState
     final state = ref.watch(interviewSessionProvider(config));
 
     ref.listen(interviewSessionProvider(config), (previous, next) {
+      // No speech was heard: let the user record again.
+      if (next.notice != null && previous?.notice != next.notice) {
+        _clearVoice();
+      }
       if (previous?.phase != next.phase &&
           (next.phase == InterviewPhase.answering ||
               next.phase == InterviewPhase.feedback ||
@@ -115,6 +143,7 @@ class _InterviewSessionScreenState
         if (next.phase == InterviewPhase.answering &&
             previous?.phase == InterviewPhase.feedback) {
           _answer.clear();
+          _clearVoice();
         }
         _scrollToTop();
       }
@@ -197,7 +226,9 @@ class _InterviewSessionScreenState
   // ── Question + answer box ─────────────────────────────────────────────────
   Widget _answerView(InterviewSessionState state) {
     final evaluating = state.phase == InterviewPhase.evaluating;
-    final canSubmit = !evaluating && _answer.text.trim().isNotEmpty;
+    final canSubmit =
+        !evaluating &&
+        (_voiceMode ? _voice != null : _answer.text.trim().isNotEmpty);
 
     return Column(
       children: [
@@ -211,29 +242,88 @@ class _InterviewSessionScreenState
                 isFollowUp: state.currentIsFollowUp,
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _answer,
-                enabled: !evaluating,
-                minLines: 7,
-                maxLines: 14,
-                maxLength: 3000,
-                textCapitalization: TextCapitalization.sentences,
-                keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
-                  hintText:
-                      'Type your answer as you would say it in the interview…',
-                  alignLabelWithHint: true,
-                ),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment(
+                    value: false,
+                    icon: Icon(Icons.keyboard_rounded, size: 18),
+                    label: Text('Type'),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    icon: Icon(Icons.mic_rounded, size: 18),
+                    label: Text('Speak'),
+                  ),
+                ],
+                selected: {_voiceMode},
+                showSelectedIcon: false,
+                onSelectionChanged: evaluating
+                    ? null
+                    : (selection) {
+                        FocusScope.of(context).unfocus();
+                        setState(() => _voiceMode = selection.first);
+                      },
               ),
-              const SizedBox(height: 4),
-              const Text(
-                'Tip: explain the idea, give a short example, and mention trade-offs.',
-                style: TextStyle(color: AppColors.textGrey, fontSize: 12.5),
+              const SizedBox(height: 14),
+              if (state.notice != null) ...[
+                InterviewCard(
+                  borderColor: AppColors.warning,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.hearing_disabled_rounded,
+                        color: AppColors.warning,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          state.notice!,
+                          style: const TextStyle(fontSize: 13, height: 1.35),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_voiceMode)
+                VoiceRecorder(
+                  key: ValueKey(_recorderKey),
+                  enabled: !evaluating,
+                  onChanged: (voice) => setState(() => _voice = voice),
+                )
+              else
+                TextField(
+                  controller: _answer,
+                  enabled: !evaluating,
+                  minLines: 7,
+                  maxLines: 14,
+                  maxLength: 3000,
+                  textCapitalization: TextCapitalization.sentences,
+                  keyboardType: TextInputType.multiline,
+                  decoration: const InputDecoration(
+                    hintText:
+                        'Type your answer as you would say it in the interview…',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              const SizedBox(height: 6),
+              Text(
+                _voiceMode
+                    ? 'You get feedback on what you said and how you said it: '
+                          'filler words, pace and confidence.'
+                    : 'Tip: explain the idea, give a short example, and mention trade-offs.',
+                style: const TextStyle(
+                  color: AppColors.textGrey,
+                  fontSize: 12.5,
+                ),
               ),
               if (evaluating) ...[
                 const SizedBox(height: 24),
-                const _Loading(
-                  message: 'Reviewing your answer…',
+                _Loading(
+                  message: _voiceMode
+                      ? 'Listening to your answer…'
+                      : 'Reviewing your answer…',
                   compact: true,
                 ),
               ],
@@ -251,13 +341,10 @@ class _InterviewSessionScreenState
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: canSubmit
-                    ? () {
-                        FocusScope.of(context).unfocus();
-                        _notifier.submitAnswer(_answer.text);
-                      }
-                    : null,
-                child: const Text('Submit answer'),
+                onPressed: canSubmit ? _submit : null,
+                child: Text(
+                  _voiceMode ? 'Submit voice answer' : 'Submit answer',
+                ),
               ),
             ),
           ],

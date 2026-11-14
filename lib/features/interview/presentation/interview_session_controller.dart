@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../chat/data/chat_repository.dart';
 import '../data/interview_models.dart';
 import '../data/interview_repository.dart';
+import '../data/voice_answer.dart';
 
 enum InterviewPhase {
   loadingQuestion, // waiting for the first question
@@ -25,6 +26,7 @@ class InterviewSessionState {
   final InterviewSession? session; // set when finished
   final bool? saved; // null until saving finished
   final String? errorMessage;
+  final String? notice; // shown above the answer box, e.g. no speech heard
   final InterviewPhase? phaseBeforeError;
 
   const InterviewSessionState({
@@ -37,6 +39,7 @@ class InterviewSessionState {
     this.session,
     this.saved,
     this.errorMessage,
+    this.notice,
     this.phaseBeforeError,
   });
 
@@ -59,6 +62,7 @@ class InterviewSessionState {
     InterviewSession? session,
     bool? saved,
     String? errorMessage,
+    String? notice,
     InterviewPhase? phaseBeforeError,
   }) {
     return InterviewSessionState(
@@ -71,6 +75,7 @@ class InterviewSessionState {
       session: session ?? this.session,
       saved: saved ?? this.saved,
       errorMessage: errorMessage, // no fallback — passing null clears it
+      notice: notice, // same: shown only until the next change
       phaseBeforeError: phaseBeforeError,
     );
   }
@@ -106,9 +111,25 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
 
   // ── Submit (or skip) the answer to the current question ───────────────────
   Future<void> submitAnswer(String answer, {bool skipped = false}) async {
-    if (state.phase != InterviewPhase.answering) return;
     final text = answer.trim();
     if (!skipped && text.isEmpty) return;
+    await _submit(text: skipped ? '' : text, skipped: skipped);
+  }
+
+  // ── Submit a spoken answer ────────────────────────────────────────────────
+  // One AI call transcribes it, scores it, reviews the delivery and writes
+  // the next question.
+  Future<void> submitVoiceAnswer(VoiceAnswer voice) async {
+    if (voice.wavBytes.isEmpty) return;
+    await _submit(text: '', voice: voice);
+  }
+
+  Future<void> _submit({
+    required String text,
+    bool skipped = false,
+    VoiceAnswer? voice,
+  }) async {
+    if (state.phase != InterviewPhase.answering) return;
 
     final wantNext = state.turns.length + 1 < config.questionCount;
     state = state.copyWith(phase: InterviewPhase.evaluating);
@@ -119,21 +140,24 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
         previousTurns: state.turns,
         question: state.currentQuestion,
         isFollowUp: state.currentIsFollowUp,
-        answer: skipped ? '' : text,
+        answer: text,
         skipped: skipped,
         wantNextQuestion: wantNext,
+        voice: voice,
       );
       if (!mounted || state.phase != InterviewPhase.evaluating) return;
 
       final turn = InterviewTurn(
         question: state.currentQuestion,
         isFollowUp: state.currentIsFollowUp,
-        answer: skipped ? '' : text,
+        answer: result.transcript ?? text,
         skipped: skipped,
         score: result.score,
         good: result.good,
         missing: result.missing,
         modelAnswer: result.modelAnswer,
+        byVoice: voice != null,
+        delivery: result.delivery,
       );
 
       state = state.copyWith(
@@ -142,11 +166,18 @@ class InterviewSessionNotifier extends StateNotifier<InterviewSessionState> {
         nextQuestion: () => result.nextQuestion,
         nextIsFollowUp: result.nextIsFollowUp,
       );
+    } on NoSpeechException catch (e) {
+      // Nothing to retry: let the user record again or type instead.
+      if (!mounted) return;
+      state = state.copyWith(
+        phase: InterviewPhase.answering,
+        notice: e.message,
+      );
     } catch (e) {
       _fail(
         e,
         InterviewPhase.answering,
-        () => submitAnswer(text, skipped: skipped),
+        () => _submit(text: text, skipped: skipped, voice: voice),
       );
     }
   }
